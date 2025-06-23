@@ -50,10 +50,10 @@ class Student extends EMongoDocument
     public function behaviors()
     {
         return array(
-            'EMongoDocumentBehavior' => array(
-                'class' => 'ext.YiiMongoDbSuite.behaviors.EMongoDocumentBehavior',
-                'arrayDocClassName' => 'Hobby', // Specify the class name of the embedded document
-                'arrayPropertyName' => 'hobbies', // Specify the property name for the embedded document
+            'embeddedArrays' => array(
+                'class'=>'ext.YiiMongoDbSuite.extra.EEmbeddedArraysBehavior',
+                'arrayPropertyName'=>'hobbies',      
+                'arrayDocClassName'=>'Hobby'    
             ),
         );
     }
