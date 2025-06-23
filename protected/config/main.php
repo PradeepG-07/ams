@@ -8,7 +8,7 @@
 return array(
     'basePath' => dirname(__FILE__) . DIRECTORY_SEPARATOR . '..',
     'name' => 'Attendance Management System',
-    'defaultController' => 'auth',
+    'defaultController' => 'site',
     // preloading 'log' component
     'preload' => array('log'),
     // autoloading model and component classes
@@ -97,9 +97,10 @@ return array(
             // 'connectionString' => "mongodb://mongo",
             // 'connectionString' => "mongodb+srv://suppa:1234@myatlasclusteredu.csyez.mongodb.net/?retryWrites=true&w=majority&appName=myAtlasClusterEDU",
             'connectionString' => "mongodb+srv://lolkeor:keori@cluster0.97xhu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
-            'dbName' => 'dbx',
+            'dbName' => 'ams',
             'fsyncFlag' => true,
             'safeFlag' => true,
+            'useCursor' => false,
         ),
 
         'errorHandler' => array(
