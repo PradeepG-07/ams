@@ -69,6 +69,10 @@ class UserController extends Controller
                 $model->attributes = $_POST['User'];
                 if ($model->save()) {
                     if ($model->role == User::ROLE_STUDENT) {
+                        if(empty($_POST['Student'])){
+                            Yii::log("Student data is empty", CLogger::LEVEL_WARNING, 'application.controllers.UserController');
+                            throw new CHttpException(400, 'Student data is required.');
+                        }
                         $student->attributes = $_POST['Student'];
                         $student->user_id = $model->_id; // Assuming user_id is the foreign key in Student
                         if ($student->save()) {
@@ -80,6 +84,10 @@ class UserController extends Controller
                             $model->delete();
                         }
                     } elseif ($model->role == User::ROLE_TEACHER) {
+                        if(empty($_POST['Teacher'])){
+                            Yii::log("Teacher data is empty", CLogger::LEVEL_WARNING, 'application.controllers.UserController');
+                            throw new CHttpException(400, 'Teacher data is required.');
+                        }
                         $teacher->attributes = $_POST['Teacher'];
                         $teacher->user_id = $model->_id;
                         if ($teacher->save()) {
