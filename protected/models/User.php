@@ -10,7 +10,7 @@ class User extends EMongoDocument
     public $email;
     public $password;
     public $role;
-    public $address = [];
+    // public $address = [];
     public $created_at;
     public $updated_at;
  
@@ -45,14 +45,10 @@ class User extends EMongoDocument
         );
     }
 
-    public function behaviors()
+    public function embeddedDocuments()
     {
         return array(
-            'EMongoDocumentBehavior' => array(
-                'class' => 'ext.YiiMongoDbSuite.behaviors.EMongoDocumentBehavior',
-                'arrayDocClassName' => 'Address',
-                'arrayPropertyName' => 'address',
-            ),
+            'address' => 'Address',
         );
     }
 
@@ -91,18 +87,13 @@ class User extends EMongoDocument
         }
     }
 
-    public function embeddedDocuments()
-    {
+    public static function getRoles(){
         return array(
-            'address' => 'Address',
+            self::ROLE_ADMIN => 'Administrator',
+            self::ROLE_TEACHER => 'Teacher',
+            self::ROLE_STUDENT => 'Student',
         );
     }
-
-    public function verifyPassword($password)
-    {
-        return CPasswordHelper::verifyPassword($password, $this->password);
-    }
-     
     public static function model($className=__CLASS__)
     {
         return parent::model($className);

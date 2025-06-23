@@ -27,7 +27,7 @@
 				<?php if (Yii::app()->user->isGuest): ?>
 				<!-- Guest Navigation -->
 				<ul class="flex space-x-4">
-					<li><a href="<?php echo Yii::app()->createUrl('auth/login'); ?>" class="hover:text-gray-400">Login</a></li>
+					<li><a href="<?php echo Yii::app()->createUrl('site/login'); ?>" class="hover:text-gray-400">Login</a></li>
 				</ul>
 				<?php elseif (Yii::app()->user->isAdmin()): ?>
 				<!-- Admin Navigation -->
@@ -87,7 +87,7 @@
 						<a href="<?php echo Yii::app()->createUrl('student/profile'); ?>" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Profile</a>
 					<?php endif; ?>
 					<div class="border-t border-gray-100"></div>
-					<a href="<?php echo Yii::app()->createUrl('auth/logout'); ?>" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</a>
+					<a href="<?php echo Yii::app()->createUrl('site/logout'); ?>" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</a>
 				</div>
 			</div>
 			<?php endif; ?>
