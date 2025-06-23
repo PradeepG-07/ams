@@ -97,7 +97,7 @@ return array(
             // 'connectionString' => "mongodb://mongo",
             // 'connectionString' => "mongodb+srv://suppa:1234@myatlasclusteredu.csyez.mongodb.net/?retryWrites=true&w=majority&appName=myAtlasClusterEDU",
             'connectionString' => "mongodb+srv://lolkeor:keori@cluster0.97xhu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
-            'dbName' => 'dbx',
+            'dbName' => 'ams',
             'fsyncFlag' => true,
             'safeFlag' => true,
         ),
