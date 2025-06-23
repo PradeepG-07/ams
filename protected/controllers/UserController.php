@@ -1,7 +1,7 @@
 <?php
  use Firebase\JWT\JWT;
  use Firebase\JWT\Key;
- 
+ use MongoDB\BSON\ObjectId;
 class UserController extends Controller
 {
     /**
@@ -106,6 +106,59 @@ class UserController extends Controller
             echo CActiveForm::validate($model);
             Yii::app()->end();
         }
+    }
+
+
+    public function actionDelete($id){
+        try {
+            $id = new ObjectId($id);
+            $user = UserHelper::loadUserById($id);
+            if($user->role == User::ROLE_TEACHER){
+                $tresult = TeacherHelper::deleteTeacherByUserId($id);
+                if (!$tresult['success']) {
+                    Yii::log("Failed to delete teacher with user ID: $id", CLogger::LEVEL_WARNING, 'application.controllers.UserController');
+                    Yii::app()->user->setFlash('error', 'Failed to delete teacher: ' . $tresult['message']);
+                    return;
+                }
+
+            } elseif($user->role == User::ROLE_STUDENT){
+                $sresult = StudentHelper::deleteStudentByUserId($id);
+                if (!$sresult['success']) {
+                    Yii::log("Failed to delete student with user ID: $id", CLogger::LEVEL_WARNING, 'application.controllers.UserController');
+                    Yii::app()->user->setFlash('error', 'Failed to delete student: ' . $sresult['message']);
+                    return;
+                }
+            }
+            else{
+                Yii::log("Admin user deletion is not allowed", CLogger::LEVEL_WARNING, 'application.controllers.UserController');
+                Yii::app()->user->setFlash('error', 'Admin user deletion is not allowed.');
+                return;
+            }
+            $result = UserHelper::deleteUser($id);
+            if ($result['success']) {
+                Yii::log("User with ID: $id deleted successfully", CLogger::LEVEL_INFO, 'application.controllers.UserController');
+                Yii::app()->user->setFlash('success', 'User deleted successfully.');
+                echo CJSON::encode(array(
+                    'success' => true,
+                    'message' => 'User deleted successfully.'
+                ));
+            } else {
+                Yii::log("Failed to delete user with ID: $id", CLogger::LEVEL_WARNING, 'application.controllers.UserController');
+                Yii::app()->user->setFlash('error', 'Failed to delete user: ' . $result['message']);
+                echo CJSON::encode(array(
+                    'success' => false,
+                    'message' => 'Failed to delete user: ' . $result['message']
+                ));
+            }
+        } catch (Exception $e) {
+            Yii::log("Error deleting user: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.controllers.UserController');
+            Yii::app()->user->setFlash('error', 'An error occurred while deleting the user: ' . $e->getMessage());
+            echo CJSON::encode(array(
+                'success' => false,
+                'message' => 'An error occurred while deleting the user: ' . $e->getMessage()
+            ));
+        }
+        
     }
    
    

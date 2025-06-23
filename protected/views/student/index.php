@@ -143,7 +143,7 @@ function renderTable(students) {
                         Edit
                     </a>
                     <button 
-                       onclick="confirmDelete('${student._id}', '${student.user.name}')"
+                       onclick="confirmDelete('${student.user_id.$oid}', '${student.user.name}')"
                        class="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 py-1 px-3 rounded-md transition duration-200">
                         Delete
                     </button>
@@ -164,7 +164,7 @@ function confirmDelete(id, name) {
 function deleteStudent(id) {
     showLoading(true);
     
-    fetch(`<?= Yii::app()->createUrl('student/delete') ?>?id=${id}`, {
+    fetch(`<?= Yii::app()->createUrl('user/delete') ?>?id=${id}`, {
         method: 'POST',
         headers: {
             'X-Requested-With': 'XMLHttpRequest',

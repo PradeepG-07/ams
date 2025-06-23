@@ -22,6 +22,33 @@ class UserHelper
         }
     }
 
+    public static function deleteUser($id)
+    {
+        try {
+            Yii::log("Deleting user with ID: $id", CLogger::LEVEL_INFO, 'application.helpers.userHelper');
+            $model = self::loadUserById($id);
+            if ($model->delete()) {
+                Yii::log("User with ID: $id deleted successfully", CLogger::LEVEL_INFO, 'application.helpers.userHelper');
+                return array(
+                    'success' => true,
+                    'message' => 'User deleted successfully!'
+                );
+            } else {
+                Yii::log("Failed to delete user with ID: $id", CLogger::LEVEL_WARNING, 'application.helpers.userHelper');
+                return array(
+                    'success' => false,
+                    'message' => 'Failed to delete user.'
+                );
+            }
+        } catch (Exception $e) {
+            Yii::log("Error in deleteUser: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.userHelper');
+            return array(
+                'success' => false,
+                'message' => 'An error occurred: ' . $e->getMessage()
+            );
+        }
+    }
+
     public static function createUser($userData = null)
     {
         Yii::log("Creating new user", CLogger::LEVEL_INFO, 'application.helpers.userHelper');

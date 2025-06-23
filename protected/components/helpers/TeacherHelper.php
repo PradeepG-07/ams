@@ -174,6 +174,31 @@ class TeacherHelper
         return Teacher::model()->count($criteria);
     }
  
+    public static function deleteTeacherByUserId($id)
+    {
+        Yii::log("Deleting teacher by user ID: $id", CLogger::LEVEL_INFO, 'application.helpers.teacherHelper');
+        $model = self::loadTeacherByUserId($id);
+        if ($model === null) {
+            Yii::log("Teacher not found with user ID: $id", CLogger::LEVEL_WARNING, 'application.helpers.teacherHelper');
+            return array(
+                'success' => false,
+                'message' => 'Teacher not found.'
+            );
+        }
+        if ($model->delete()) {
+            Yii::log("Teacher with user ID: $id deleted successfully", CLogger::LEVEL_INFO, 'application.helpers.teacherHelper');
+            return array(
+                'success' => true,
+                'message' => 'Teacher deleted successfully!'
+            );
+        } else {
+            Yii::log("Failed to delete teacher with user ID: $id", CLogger::LEVEL_WARNING, 'application.helpers.teacherHelper');
+            return array(
+                'success' => false,
+                'message' => 'Failed to delete teacher.'
+            );
+        }
+    }
    
     // public static function findAll($criteria = null)
     // {

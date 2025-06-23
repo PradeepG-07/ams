@@ -138,12 +138,12 @@ function renderTable(teachers) {
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <div class="flex space-x-2">
-                    <a href="<?= Yii::app()->createUrl('teacher/update') ?>?id=${teacher._id.$oid}" 
+                    <a href="<?= Yii::app()->createUrl('teacher/update') ?>?id=${teacher.user_id}" 
                        class="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 py-1 px-3 rounded-md transition duration-200">
                         Edit
                     </a>
                     <button 
-                       onclick="confirmDelete('${teacher._id.$oid}', '${teacher.user.name}')"
+                       onclick="confirmDelete('${teacher.user_id.$oid}', '${teacher.user.name}')"
                        class="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 py-1 px-3 rounded-md transition duration-200">
                         Delete
                     </button>
@@ -164,7 +164,7 @@ function confirmDelete(id, name) {
 function deleteTeacher(id) {
     showLoading(true);
     
-    fetch(`<?= Yii::app()->createUrl('teacher/delete') ?>?id=${id}`, {
+    fetch(`<?= Yii::app()->createUrl('user/delete') ?>?id=${id}`, {
         method: 'POST',
         headers: {
             'X-Requested-With': 'XMLHttpRequest',

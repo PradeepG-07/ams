@@ -151,5 +151,32 @@ class StudentHelper
         }
         return Student::model()->count($criteria);
     }
+
+    public static function deleteStudentByUserId($userId)
+    {
+        Yii::log("Deleting student by user ID: $userId", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+        try {
+            $student = self::loadStudentByUserId($userId);
+            if ($student->delete()) {
+                Yii::log("Student with user ID: $userId deleted successfully", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+                return array(
+                    'success' => true,
+                    'message' => 'Student deleted successfully!'
+                );
+            } else {
+                Yii::log("Failed to delete student with user ID: $userId", CLogger::LEVEL_WARNING, 'application.helpers.studentHelper');
+                return array(
+                    'success' => false,
+                    'message' => 'Failed to delete student.'
+                );
+            }
+        } catch (Exception $e) {
+            Yii::log("Error in deleteStudentByUserId: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+            return array(
+                'success' => false,
+                'message' => 'An error occurred: ' . $e->getMessage()
+            );
+        }
+    }
 }
  
