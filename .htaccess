@@ -16,7 +16,7 @@
     </Files>
  
     # Deny access to system directories
-    RewriteRule ^(assets|protected|framework|themes|upload)/ - [F]
+    RewriteRule ^(protected|framework|themes|upload)/ - [F]
  
     # Deny access to sensitive files
     <FilesMatch "(^#.*#|\.(bak|config|dist|fla|in[ci]|log|psd|sh|sql|sw[op])|~)$">
