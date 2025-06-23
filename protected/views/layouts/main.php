@@ -32,9 +32,9 @@
 				<?php elseif (Yii::app()->user->isAdmin()): ?>
 				<!-- Admin Navigation -->
 				<ul class="flex space-x-4">
-					<li><a href="<?php echo Yii::app()->createUrl('admin/managestudents'); ?>" class="hover:text-gray-400">Manage Students</a></li>
-					<li><a href="<?php echo Yii::app()->createUrl('admin/manageteachers'); ?>" class="hover:text-gray-400">Manage Teachers</a></li>
-					<li><a href="<?php echo Yii::app()->createUrl('admin/manageclasses'); ?>" class="hover:text-gray-400">Manage Classes</a></li>
+					<li><a href="<?php echo Yii::app()->createUrl('student/index'); ?>" class="hover:text-gray-400">Manage Students</a></li>
+					<li><a href="<?php echo Yii::app()->createUrl('teacher/index'); ?>" class="hover:text-gray-400">Manage Teachers</a></li>
+					<li><a href="<?php echo Yii::app()->createUrl('classes/index'); ?>" class="hover:text-gray-400">Manage Classes</a></li>
 					<li><a href="<?php echo Yii::app()->createUrl('admin/attendance'); ?>" class="hover:text-gray-400">Attendance</a></li>
 				</ul>
 				<?php elseif (Yii::app()->user->isTeacher()): ?>

@@ -11,7 +11,7 @@ class WebUser extends CWebUser
      */
     public function isAdmin()
     {
-        return !$this->isGuest && $this->getState('user_type') === 'admin';
+        return !$this->isGuest && $this->getState('role') === User::ROLE_ADMIN;
     }
     
     /**
@@ -20,7 +20,7 @@ class WebUser extends CWebUser
      */
     public function isTeacher()
     {
-        return !$this->isGuest && $this->getState('user_type') === 'teacher';
+        return !$this->isGuest && $this->getState('role') === User::ROLE_TEACHER;
     }
     
     /**
@@ -29,7 +29,7 @@ class WebUser extends CWebUser
      */
     public function isStudent()
     {
-        return !$this->isGuest && $this->getState('user_type') === 'student';
+        return !$this->isGuest && $this->getState('role') === User::ROLE_STUDENT;
     }
     
     /**
@@ -38,6 +38,6 @@ class WebUser extends CWebUser
      */
     public function getUserType()
     {
-        return $this->getState('user_type');
+        return $this->getState('role');
     }
 }

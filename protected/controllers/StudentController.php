@@ -68,15 +68,15 @@ class StudentController extends Controller
             $students = StudentHelper::listStudents($page);
             $total = StudentHelper::count();
             $this->sendAjaxResponseIfAjax($students,$total);
-            echo CJSON::encode(array(
-                'success' => true,
-                'total' => $total,
-                'students' =>  $students,
-            ));
-            // $this->render('index', array(
-            //     'students' => $students,
+            // echo CJSON::encode(array(
+            //     'success' => true,
             //     'total' => $total,
+            //     'students' =>  $students,
             // ));
+            $this->render('index', array(
+                'students' => $students,
+                'total' => $total,
+            ));
 
         }catch(Exception $e){
             Yii::log("Error listing students: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.controllers.StudentController');
