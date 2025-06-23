@@ -1,0 +1,17 @@
+{
+    "require": {
+      "mongodb/mongodb": "^1.15",
+      "firebase/php-jwt": "^6.11",
+      "swiftmailer/swiftmailer": "^6.3",
+      "aws/aws-sdk-php": "^3.342",
+      "vlucas/phpdotenv": "^5.6"
+    },
+    "require-dev": {
+      "phpunit/phpunit": "11.5.11",
+      "mockery/mockery": "^1.6.12",
+      "phpunit/php-code-coverage": "^11.0.8",
+      "php-parallel-lint/php-parallel-lint": "^1.4.0",
+      "friendsofphp/php-cs-fixer": "3.65.0",
+      "brianium/paratest": "^7.8.3"
+    }
+  }

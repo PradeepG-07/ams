@@ -1,0 +1,27 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+ 
+    # Skip existing files/directories
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+ 
+    # Route everything to index.php
+    RewriteRule ^.*$ index.php [L]
+ 
+    # Deny access to protected directories
+    <Files ~ "^\.">
+        Order allow,deny
+        Deny from all
+    </Files>
+ 
+    # Deny access to system directories
+    RewriteRule ^(assets|protected|framework|themes|upload)/ - [F]
+ 
+    # Deny access to sensitive files
+    <FilesMatch "(^#.*#|\.(bak|config|dist|fla|in[ci]|log|psd|sh|sql|sw[op])|~)$">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+</IfModule>
+ 
