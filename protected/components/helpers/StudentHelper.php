@@ -97,33 +97,59 @@ class StudentHelper
             );
         }
     }
+
+    public static function listStudents($page = 1){
+        Yii::log("Listing students for page: $page", CLogger::LEVEL_TRACE, 'application.helpers.studentHelper');
+        
+        $aggregationResult = Student::model()->startAggregation()
+            ->addStage([
+                '$lookup' => [
+                    'from' => 'users',
+                    'localField' => 'user_id',
+                    'foreignField' => '_id',
+                    'as' => 'user'
+                ]
+            ])
+            ->addStage([
+                '$unwind' => [
+                    'path' => '$user',
+                    'preserveNullAndEmptyArrays' => true
+                ]
+            ])
+            ->sort(['created_at' => EMongoCriteria::SORT_DESC])
+            ->skip(($page - 1) * 10)
+            ->limit(10)
+            ->aggregate();
+    
+        $students = $aggregationResult['result'] ?? [];
+        
+        return $students;
+    }
  
    
     // public static function findAll($criteria = null)
     // {
-    //     Yii::log("Finding all jobs with criteria: " . json_encode($criteria), CLogger::LEVEL_TRACE, 'application.helpers.jobHelper');
+    //     Yii::log("Finding all jobs with criteria: " . json_encode($criteria), CLogger::LEVEL_TRACE, 'application.helpers.studentHelper');
     //     if ($criteria === null) {
     //         $criteria = new EMongoCriteria();
     //     }
     //     return Job::model()->findAll($criteria);
     // }
  
-    // public static function count($conditions = array())
-    // {
-    //     Yii::log("Counting jobs with conditions: " . json_encode($conditions), CLogger::LEVEL_TRACE, 'application.helpers.jobHelper');
-    //     if (!is_array($conditions)) {
-    //         Yii::log("Invalid conditions format, expected array.", CLogger::LEVEL_ERROR, 'application.helpers.jobHelper');
-    //         throw new InvalidArgumentException('Conditions must be an array.');
-    //     }
-    //     $criteria = new EMongoCriteria();
- 
- 
-    //     if (!empty($conditions)) {
-    //         foreach ($conditions as $condition) {
-    //             $criteria->addCond($condition[0], $condition[1], $condition[2]);
-    //         }
-    //     }
-    //     return Job::model()->count($criteria);
-    // }
+    public static function count($conditions = array())
+    {
+        Yii::log("Counting jobs with conditions: " . json_encode($conditions), CLogger::LEVEL_TRACE, 'application.helpers.studentHelper');
+        if (!is_array($conditions)) {
+            Yii::log("Invalid conditions format, expected array.", CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+            throw new InvalidArgumentException('Conditions must be an array.');
+        }
+        $criteria = new EMongoCriteria(); 
+        if (!empty($conditions)) {
+            foreach ($conditions as $condition) {
+                $criteria->addCond($condition[0], $condition[1], $condition[2]);
+            }
+        }
+        return Student::model()->count($criteria);
+    }
 }
  
