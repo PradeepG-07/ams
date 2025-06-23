@@ -21,58 +21,73 @@ class ClassesHelper{
         }
     }
 
-    public static function createClass($class_name){
+    public static function loadClassById($id){
 
         try{
 
-            Yii::log("Creating class with " . $class_name, CLogger::LEVEL_TRACE, 'application.helpers.classesHelper');
+            Yii::log("Loading class model with id: " . $id, CLogger::LEVEL_TRACE, 'application.helpers.classesHelper');
 
-            $class = new Classes();
-            $class->class_name = $class_name;
-            // todo: check in before save whether class name exists for uniqueness
-            if($class->save()){
+            $class = Classes::model()->findByPk($id);
+            if($class){
                 return $class;
             } else {
-                if($class->hasErrors()){
-                    Yii::log("Error saving class: " . json_encode($class->getErrors()), CLogger::LEVEL_ERROR, 'application.helpers.classesHelper');
-                    throw new CHttpException("Error saving class: " . json_encode($class->getErrors()));
-                } else {
-                    throw new CHttpException("Unknown error while saving class");
-                }
+                throw new CHttpException(404, 'The requested class does not exist.');
             }
         }
         catch(Exception $e){
-            Yii::log("Error creating class: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.classesHelper');
+            Yii::log("Error loading class by ID: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.classesHelper');
             throw $e; // Re-throw the exception for further handling
         }
     }
 
-    public static function updateClass($class_id, $attributes){
+    public static function createClass($classData = null)
+    {
 
-        try{
+        Yii::log("Creating new class", CLogger::LEVEL_INFO, 'application.helpers.classesHelper');
+        
+        $model = new Classes;
+        return self::_update($model, $classData);
+           
+    }
+    
+    public static function updateClass($id, $classData = null)
+    {
+        Yii::log("Updating a class", CLogger::LEVEL_INFO, 'application.helpers.classesHelper');
+        $model = self::loadClassById($id);
+        return self::_update($model, $classData);
+    }
 
-            Yii::log("Updating class with ID: " . $class_id, CLogger::LEVEL_TRACE, 'application.helpers.classesHelper');
 
-            $class = Classes::model()->findByPk($class_id);
-            if($class){
-                $class->attributes = $attributes;
-                if($class->save()){
-                    return $class;
-                } else {
-                    if($class->hasErrors()){
-                        Yii::log("Error updating class: " . json_encode($class->getErrors()), CLogger::LEVEL_ERROR, 'application.helpers.classesHelper');
-                        throw new CHttpException("Error updating class: " . json_encode($class->getErrors()));
-                    } else {
-                        throw new CHttpException("Unknown error while updating class");
-                    }
-                }
-            } else {
-                throw new CHttpException("Class not found with ID: " . $class_id);
+    private static function _update($model, $classData = null){
+        try {
+            $id = $model->_id;
+            Yii::log($model->_id == null ? "Creating new class" : "Updating class with ID: {$model->_id}", CLogger::LEVEL_INFO, 'application.helpers.classesHelper');
+            $model->attributes = $classData;
+
+            // handle validating embedded documents in before save
+            if (!$model->validate() || !$model->save()) {
+                Yii::log("Failed to save class: " . json_encode($model->getErrors()), CLogger::LEVEL_WARNING, 'application.helpers.classesHelper');
+                return array(
+                    'success' => false,
+                    'model' => $model,
+                    'message' => 'Failed to save class: ' . json_encode($model->getErrors())
+                );
             }
-        }
-        catch(Exception $e){
-            Yii::log("Error updating class: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.classesHelper');
-            throw $e; 
+            
+            Yii::log("Class " . ($id == null ? "created" : "updated") . " successfully with ID: {$model->_id}", CLogger::LEVEL_INFO, 'application.helpers.classesHelper');
+            
+            return array(
+                'success' => true,
+                'model' => $model,
+                'message' => 'Class ' . ($id == null ? "created" : "updated") . ' successfully!'
+            );
+        } catch (Exception $e) {
+            Yii::log("Error in ". ($id == null ? "create" : "update") . ": " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.classesHelper');
+            return array(
+                'success' => false,
+                'model' => $model,
+                'message' => 'An error occurred: ' . $e->getMessage() 
+            );
         }
     }
     public static function deleteClass($class_id){
@@ -81,21 +96,24 @@ class ClassesHelper{
 
             Yii::log("Deleting class with ID: " . $class_id, CLogger::LEVEL_TRACE, 'application.helpers.classesHelper');
 
-            $class = Classes::model()->findByPk($class_id);
-            if($class){
-                if($class->delete()){
-                    return true;
-                } else {
-                    if($class->hasErrors()){
-                        Yii::log("Error deleting class: " . json_encode($class->getErrors()), CLogger::LEVEL_ERROR, 'application.helpers.classesHelper');
-                        throw new CHttpException("Error deleting class: " . json_encode($class->getErrors()));
-                    } else {
-                        throw new CHttpException("Unknown error while deleting class");
-                    }
-                }
-            } else {
-                throw new CHttpException("Class not found with ID: " . $class_id);
-            }
+            $class = self::loadClassById($class_id);
+            //set the class to empty in students
+            $criteria = new EMongoCriteria();
+            $criteria->class = $class_id;
+            $modifier = new EMongoModifier();
+            $modifier->addModifier('class','set', "");
+            $students = Student::model()->updateAll($modifier, $criteria);
+
+            //remove the id from teachers
+            $criteria = new EMongoCriteria();
+            $criteria->addCond('classes','in', array($class_id));
+            $modifier = new EMongoModifier();
+            $modifier->addModifier('classes','pull', $class_id);
+            $teachers = Teacher::model()->updateAll($modifier, $criteria);
+
+            $class->delete();
+            return true;
+            Yii::log("Class with ID: {$class_id} deleted successfully.", CLogger::LEVEL_INFO, 'application.helpers.classesHelper');
         }
         catch(Exception $e){
             Yii::log("Error deleting class: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.classesHelper');
@@ -110,7 +128,8 @@ class ClassesHelper{
             Yii::log("Listing classes for page: " . $page, CLogger::LEVEL_TRACE, 'application.helpers.classesHelper');
 
             $criteria = new EMongoCriteria();
-            $criteria->limit($limit)->skip(($page - 1) * $limit);
+            $criteria->limit($limit);
+            $criteria->offset(($page - 1) * $limit);
             $classes = Classes::model()->findAll($criteria);
 
             if($classes){
@@ -124,5 +143,22 @@ class ClassesHelper{
             throw $e; // Re-throw the exception for further handling
         }
     }
+
+    public static function count($conditions = array())
+    {
+        Yii::log("Counting jobs with conditions: " . json_encode($conditions), CLogger::LEVEL_TRACE, 'application.helpers.studentHelper');
+        if (!is_array($conditions)) {
+            Yii::log("Invalid conditions format, expected array.", CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+            throw new InvalidArgumentException('Conditions must be an array.');
+        }
+        $criteria = new EMongoCriteria(); 
+        if (!empty($conditions)) {
+            foreach ($conditions as $condition) {
+                $criteria->addCond($condition[0], $condition[1], $condition[2]);
+            }
+        }
+        return Classes::model()->count($criteria);
+    }
+
 
 }
