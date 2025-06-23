@@ -1,3 +1,5 @@
+<script src="https://cdn.tailwindcss.com"></script>
+
 <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
     <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
         <h2 class="text-2xl font-bold text-gray-800">User Registration Form</h2>
@@ -303,77 +305,3 @@ function removeClass(button) {
     }
 }
 </script>
-
-<style>
-/* Tailwind CSS classes for styling */
-.max-w-4xl { max-width: 56rem; }
-.mx-auto { margin-left: auto; margin-right: auto; }
-.bg-white { background-color: #ffffff; }
-.shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
-.rounded-lg { border-radius: 0.5rem; }
-.overflow-hidden { overflow: hidden; }
-.px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
-.py-4 { padding-top: 1rem; padding-bottom: 1rem; }
-.bg-gray-50 { background-color: #f9fafb; }
-.border-b { border-bottom-width: 1px; }
-.border-gray-200 { border-color: #e5e7eb; }
-.text-2xl { font-size: 1.5rem; line-height: 2rem; }
-.font-bold { font-weight: 700; }
-.text-gray-800 { color: #1f2937; }
-.p-6 { padding: 1.5rem; }
-.space-y-6 > * + * { margin-top: 1.5rem; }
-.grid { display: grid; }
-.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
-.gap-6 { gap: 1.5rem; }
-.block { display: block; }
-.text-sm { font-size: 0.875rem; line-height: 1.25rem; }
-.font-medium { font-weight: 500; }
-.text-gray-700 { color: #374151; }
-.mb-2 { margin-bottom: 0.5rem; }
-.w-full { width: 100%; }
-.px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
-.py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
-.border { border-width: 1px; }
-.border-gray-300 { border-color: #d1d5db; }
-.rounded-md { border-radius: 0.375rem; }
-.shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
-.focus\:outline-none:focus { outline: 2px solid transparent; outline-offset: 2px; }
-.focus\:ring-2:focus { box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); }
-.focus\:ring-blue-500:focus { --tw-ring-color: #3b82f6; }
-.focus\:border-blue-500:focus { border-color: #3b82f6; }
-.text-red-500 { color: #ef4444; }
-.mt-1 { margin-top: 0.25rem; }
-.text-gray-500 { color: #6b7280; }
-.text-xs { font-size: 0.75rem; line-height: 1rem; }
-.border-t { border-top-width: 1px; }
-.pt-6 { padding-top: 1.5rem; }
-.text-lg { font-size: 1.125rem; line-height: 1.75rem; }
-.text-gray-900 { color: #111827; }
-.mb-4 { margin-bottom: 1rem; }
-.hidden { display: none; }
-.md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.md\:col-span-2 { grid-column: span 2 / span 2; }
-.mt-6 { margin-top: 1.5rem; }
-.space-y-3 > * + * { margin-top: 0.75rem; }
-.flex { display: flex; }
-.gap-3 { gap: 0.75rem; }
-.flex-1 { flex: 1 1 0%; }
-.bg-red-500 { background-color: #ef4444; }
-.text-white { color: #ffffff; }
-.hover\:bg-red-600:hover { background-color: #dc2626; }
-.mt-3 { margin-top: 0.75rem; }
-.px-4 { padding-left: 1rem; padding-right: 1rem; }
-.bg-green-500 { background-color: #10b981; }
-.hover\:bg-green-600:hover { background-color: #059669; }
-.md\:w-auto { width: auto; }
-.bg-blue-600 { background-color: #2563eb; }
-.hover\:bg-blue-700:hover { background-color: #1d4ed8; }
-.focus\:ring-blue-500:focus { --tw-ring-color: #3b82f6; }
-.focus\:ring-offset-2:focus { --tw-ring-offset-width: 2px; }
-
-@media (min-width: 768px) {
-    .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .md\:col-span-2 { grid-column: span 2 / span 2; }
-    .md\:w-auto { width: auto; }
-}
-</style>
