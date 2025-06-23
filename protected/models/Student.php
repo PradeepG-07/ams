@@ -23,7 +23,7 @@ class Student extends EMongoDocument
             ['roll_no', 'length', 'max' => 20],
             ['cgpa', 'numerical'],
             ['profile_picture', 'file', 'types' => 'jpg, jpeg, png', 'allowEmpty' => true],
-            ['cgpa','filter', 'filter' => convertToNumber],
+            ['cgpa','filter', 'filter' => "convertToNumber"],
         );
     }
 

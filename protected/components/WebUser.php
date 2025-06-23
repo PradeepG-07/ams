@@ -31,13 +31,9 @@ class WebUser extends CWebUser
     {
         return !$this->isGuest && $this->getState('role') === User::ROLE_STUDENT;
     }
-    
-    /**
-     * Get the user type
-     * @return string|null
-     */
-    public function getUserType()
-    {
+
+
+    public function getRole(){
         return $this->getState('role');
     }
 }

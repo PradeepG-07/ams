@@ -22,6 +22,7 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CGPA</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hobbies</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="students-tbody" class="bg-white divide-y divide-gray-200">
@@ -43,7 +44,7 @@
             <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                 <div>
                     <p class="text-sm text-gray-700">
-                        Showing <span id="showing-from" class="font-medium">1</span> to <span id="showing-to" class="font-medium">10</span> of <span id="total-records" class="font-medium">0</span> results
+                        Showing <span id="showing-from" class="font-medium">1</span> to <span id="showing-to" class="font-medium">5</span> of <span id="total-records" class="font-medium">0</span> results
                     </p>
                 </div>
                 <div>
@@ -93,11 +94,14 @@ function loadStudents(page) {
     });
 }
 
+
 function renderTable(students) {
     const tbody = document.getElementById('students-tbody');
     tbody.innerHTML = '';
     
     students.forEach(student => {
+        console.log(student);
+        
         const row = document.createElement('tr');
         row.className = 'hover:bg-gray-50';
         
@@ -132,19 +136,89 @@ function renderTable(students) {
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 ${hobbies}
             </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <div class="flex space-x-2">
+                    <a href="<?= Yii::app()->createUrl('student/update') ?>?id=${student._id.$oid}" 
+                       class="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 py-1 px-3 rounded-md transition duration-200">
+                        Edit
+                    </a>
+                    <button 
+                       onclick="confirmDelete('${student._id}', '${student.user.name}')"
+                       class="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 py-1 px-3 rounded-md transition duration-200">
+                        Delete
+                    </button>
+                </div>
+            </td>
         `;
         
         tbody.appendChild(row);
     });
 }
 
+function confirmDelete(id, name) {
+    if (confirm(`Are you sure you want to delete student "${name}"?`)) {
+        deleteStudent(id);
+    }
+}
+
+function deleteStudent(id) {
+    showLoading(true);
+    
+    fetch(`<?= Yii::app()->createUrl('student/delete') ?>?id=${id}`, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Reload the current page to reflect the changes
+            loadStudents(currentPage);
+            
+            // Show success message
+            showNotification('Student deleted successfully', 'success');
+        } else {
+            console.error('Error deleting student:', data.message);
+            showNotification('Error deleting student: ' + data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('An unexpected error occurred', 'error');
+    })
+    .finally(() => {
+        showLoading(false);
+    });
+}
+
+// Simple notification function
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-4 py-2 rounded-md shadow-lg ${
+        type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+    } transition-opacity duration-500`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        setTimeout(() => {
+            notification.remove();
+        }, 500);
+    }, 3000);
+}
+
 function updatePagination(page, total) {
     totalRecords = total;
-    totalPages = Math.ceil(total / 10);
+    totalPages = Math.ceil(total / 5);
     
     // Update showing text
-    const showingFrom = (page - 1) * 10 + 1;
-    const showingTo = Math.min(page * 10, total);
+    const showingFrom = (page - 1) * 5 + 1;
+    const showingTo = Math.min(page * 5, total);
     
     document.getElementById('showing-from').textContent = showingFrom;
     document.getElementById('showing-to').textContent = showingTo;

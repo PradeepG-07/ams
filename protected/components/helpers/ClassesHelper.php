@@ -102,4 +102,27 @@ class ClassesHelper{
             throw $e; 
         }
     }
+
+    public static function listClasses($page = 1, $limit = 10){
+
+        try{
+
+            Yii::log("Listing classes for page: " . $page, CLogger::LEVEL_TRACE, 'application.helpers.classesHelper');
+
+            $criteria = new EMongoCriteria();
+            $criteria->limit($limit)->skip(($page - 1) * $limit);
+            $classes = Classes::model()->findAll($criteria);
+
+            if($classes){
+                return $classes;
+            } else {
+                return [];
+            }
+        }
+        catch(Exception $e){
+            Yii::log("Error listing classes: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.classesHelper');
+            throw $e; // Re-throw the exception for further handling
+        }
+    }
+
 }

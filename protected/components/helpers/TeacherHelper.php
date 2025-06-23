@@ -97,6 +97,82 @@ class TeacherHelper
             );
         }
     }
+
+
+    public static function listTeachers($page = 1){
+        Yii::log("Listing teachers for page: $page", CLogger::LEVEL_TRACE, 'application.helpers.teacherHelper');
+        
+        $aggregationResult = Teacher::model()->startAggregation()
+            ->addStage([
+                '$lookup' => [
+                    'from' => 'users',
+                    'localField' => 'user_id',
+                    'foreignField' => '_id',
+                    'as' => 'user'
+                ]
+            ])
+            ->addStage([
+                '$unwind' => [
+                    'path' => '$user',
+                    'preserveNullAndEmptyArrays' => true
+                ]
+            ])
+            ->sort(['created_at' => EMongoCriteria::SORT_DESC])
+            ->skip(($page - 1) * 5)
+            ->limit(5)
+            ->aggregate();
+    
+        $teachers = $aggregationResult['result'] ?? [];
+        
+        return $teachers;
+    }
+
+    public static function getTeacherWithPopulatedClasses($teacherId)
+    {
+        Yii::log("Getting teacher with populated classes for teacher ID: $teacherId", CLogger::LEVEL_TRACE, 'application.helpers.teacherHelper');
+        
+        $result = Teacher::model()->startAggregation()
+            ->addStage([
+                '$lookup' => [
+                    'from' => 'classes',
+                    'localField' => 'classes',
+                    'foreignField' => '_id',
+                    'as' => 'classes'
+                ]
+            ])
+            ->addStage([
+                '$unwind' => [
+                    'path' => '$classes',
+                    'preserveNullAndEmptyArrays' => true
+                ]
+            ])
+            ->aggregate();
+        
+        $teacher = $result['result'] ?? null;
+        
+        if ($teacher === null) {
+            Yii::log("Teacher not found with ID: $teacherId", CLogger::LEVEL_WARNING, 'application.helpers.teacherHelper');
+            throw new CHttpException(404, 'The requested teacher does not exist.');
+        }
+        
+        return $teacher;
+    }
+
+    public static function count($conditions = array())
+    {
+        Yii::log("Counting jobs with conditions: " . json_encode($conditions), CLogger::LEVEL_TRACE, 'application.helpers.studentHelper');
+        if (!is_array($conditions)) {
+            Yii::log("Invalid conditions format, expected array.", CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+            throw new InvalidArgumentException('Conditions must be an array.');
+        }
+        $criteria = new EMongoCriteria(); 
+        if (!empty($conditions)) {
+            foreach ($conditions as $condition) {
+                $criteria->addCond($condition[0], $condition[1], $condition[2]);
+            }
+        }
+        return Teacher::model()->count($criteria);
+    }
  
    
     // public static function findAll($criteria = null)

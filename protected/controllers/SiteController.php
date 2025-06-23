@@ -1,5 +1,5 @@
 <?php
- 
+
 class SiteController extends Controller
 {
     public $layout = '//layouts/main';
@@ -14,7 +14,7 @@ class SiteController extends Controller
             ),
         );
     }
- 
+
     /**
      * This is the default 'index' action that is invoked
      * when an action is not explicitly requested by users.
@@ -23,7 +23,24 @@ class SiteController extends Controller
     {
         try {
             Yii::log("Starting actionIndex", CLogger::LEVEL_INFO, 'application.site.index');
-            $this->render('index');
+            switch (Yii::app()->user->getRole()) {
+                case User::ROLE_ADMIN:
+                    Yii::log("User is admin, redirecting to admin dashboard", CLogger::LEVEL_INFO, 'application.site.index');
+                    $this->redirect(array('student/index'));
+                    break;
+                case User::ROLE_STUDENT:
+                    Yii::log("User is student, redirecting to student dashboard", CLogger::LEVEL_INFO, 'application.site.index');
+                    $this->redirect(array('student/dashboard'));
+                    break;
+                case User::ROLE_TEACHER:
+                    Yii::log("User is teacher, redirecting to teacher dashboard", CLogger::LEVEL_INFO, 'application.site.index');
+                    $this->redirect(array('teacher/index'));
+                    break;
+                default:
+                    Yii::log("Unknown user role, redirecting to login page", CLogger::LEVEL_WARNING, 'application.site.index');
+                    $this->redirect(array('site/login'));
+            }
+            // $this->render('index');
         } catch (Exception $e) {
             Yii::log("Error in actionIndex: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.site.index');
             $this->render('error', array(
@@ -32,7 +49,7 @@ class SiteController extends Controller
             ));
         }
     }
- 
+
     /**
      * This is the action to handle external exceptions.
      */
@@ -40,10 +57,10 @@ class SiteController extends Controller
     {
         try {
             Yii::log("Starting actionError", CLogger::LEVEL_INFO, 'application.site.error');
-            
+
             if ($error = Yii::app()->errorHandler->error) {
                 Yii::log("Handling error: code={$error['code']}, message={$error['message']}", CLogger::LEVEL_WARNING, 'application.site.error');
-                
+
                 if (Yii::app()->request->isAjaxRequest)
                     echo $error['message'];
                 else
@@ -59,7 +76,7 @@ class SiteController extends Controller
             echo 'An error occurred while processing the error page.';
         }
     }
- 
+
     /**
      * Displays the login page
      */
@@ -67,12 +84,12 @@ class SiteController extends Controller
     {
         try {
             Yii::log("Starting actionLogin", CLogger::LEVEL_INFO, 'application.site.login');
-            
+
             $model = new LoginForm;
- 
+
             // if it is ajax validation request
             $this->performAjaxValidation($model);
- 
+
             // collect user input data
             if (isset($_POST['LoginForm'])) {
                 Yii::log("Processing login form submission", CLogger::LEVEL_TRACE, 'application.site.login');
@@ -86,7 +103,7 @@ class SiteController extends Controller
                     Yii::log("Login failed for username: " . $model->email, CLogger::LEVEL_WARNING, 'application.site.login');
                 }
             }
-            
+
             // display the login form
             Yii::log("Rendering login form", CLogger::LEVEL_TRACE, 'application.site.login');
             $this->render('login', array('model' => $model));
@@ -97,7 +114,7 @@ class SiteController extends Controller
             // $this->redirect(array('site/index'));
         }
     }
- 
+
     /**
      * Logs out the current user and redirect to homepage.
      */
@@ -105,10 +122,10 @@ class SiteController extends Controller
     {
         try {
             Yii::log("Starting actionLogout for user: " . Yii::app()->user->name, CLogger::LEVEL_INFO, 'application.site.logout');
-            
+
             Yii::app()->user->logout();
             Yii::log("User logged out successfully", CLogger::LEVEL_INFO, 'application.site.logout');
-            
+
             Yii::app()->user->setFlash('success', 'You have been successfully logged out.');
             $this->redirect(Yii::app()->homeUrl);
         } catch (Exception $e) {
@@ -117,8 +134,8 @@ class SiteController extends Controller
             $this->redirect(Yii::app()->homeUrl);
         }
     }
- 
- 
+
+
     public function performAjaxValidation($model)
     {
         if (isset($_POST['ajax']) && $_POST['ajax'] === 'login-form') {
@@ -126,6 +143,4 @@ class SiteController extends Controller
             Yii::app()->end();
         }
     }
-    
 }
- 

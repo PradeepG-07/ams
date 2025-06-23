@@ -117,8 +117,8 @@ class StudentHelper
                 ]
             ])
             ->sort(['created_at' => EMongoCriteria::SORT_DESC])
-            ->skip(($page - 1) * 10)
-            ->limit(10)
+            ->skip(($page - 1) * 5)
+            ->limit(5)
             ->aggregate();
     
         $students = $aggregationResult['result'] ?? [];
