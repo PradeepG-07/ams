@@ -47,6 +47,56 @@ class TeacherHelper
             }
     }
     
+    public static function createTeacher($teacherData = null, $userId = null)
+    {
+
+        Yii::log("Creating new teacher", CLogger::LEVEL_INFO, 'application.helpers.teacherHelper');
+        
+        $model = new Teacher();
+        $model->user_id = $userId;
+        return self::_update(null, $model, $teacherData);
+           
+    }
+    
+    public static function updateTeacher($id, $teacherData = null)
+    {
+        Yii::log("Updating a teacher", CLogger::LEVEL_INFO, 'application.helpers.teacherHelper');
+        $model = self::loadTeacherById($id);
+        return self::_update($id, $model, $teacherData);
+    }
+
+
+    private static function _update($id=null, $model, $teacherData = null){
+        try {
+            Yii::log($id==null ? "Creating new teacher" : "Updating teacher with ID: $id", CLogger::LEVEL_INFO, 'application.helpers.teacherHelper');
+            $model->attributes = $teacherData;
+
+            // handle validating embedded documents in before save
+            if (!$model->validate() || !$model->save()) {
+                Yii::log("Failed to save teacher: " . json_encode($model->getErrors()), CLogger::LEVEL_WARNING, 'application.helpers.teacherHelper');
+                return array(
+                    'success' => false,
+                    'model' => $model,
+                    'message' => 'Failed to save teacher: ' . json_encode($model->getErrors())
+                );
+            }
+            
+            Yii::log("Teacher " . ($id == null ? "created" : "updated") . " successfully with ID: {$model->_id}", CLogger::LEVEL_INFO, 'application.helpers.teacherHelper');
+            
+            return array(
+                'success' => true,
+                'model' => $model,
+                'message' => 'Teacher ' . ($id == null ? "created" : "updated") . ' successfully!'
+            );
+        } catch (Exception $e) {
+            Yii::log("Error in ". ($id == null ? "create" : "update") . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.userHelper');
+            return array(
+                'success' => false,
+                'model' => $model,
+                'message' => 'An error occurred: ' . $e->getMessage() 
+            );
+        }
+    }
  
    
     // public static function findAll($criteria = null)

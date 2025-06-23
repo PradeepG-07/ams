@@ -46,7 +46,57 @@ class StudentHelper
                 Yii::log("Error in loadStudentByUserId: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
             }
     }
+
+    public static function createStudent($studentData = null, $userId = null)
+    {
+
+        Yii::log("Creating new student", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+        
+        $model = new Student;
+        $model->user_id = $userId;
+        return self::_update(null, $model, $studentData);
+           
+    }
     
+    public static function updateStudent($id, $studentData = null)
+    {
+        Yii::log("Updating a student", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+        $model = self::loadStudentById($id);
+        return self::_update($id, $model, $studentData);
+    }
+
+
+    private static function _update($id=null, $model, $studentData = null){
+        try {
+            Yii::log($id==null ? "Creating new student" : "Updating student with ID: $id", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+            $model->attributes = $studentData;
+
+            // handle validating embedded documents in before save
+            if (!$model->validate() || !$model->save()) {
+                Yii::log("Failed to save student: " . json_encode($model->getErrors()), CLogger::LEVEL_WARNING, 'application.helpers.studentHelper');
+                return array(
+                    'success' => false,
+                    'model' => $model,
+                    'message' => 'Failed to save student: ' . json_encode($model->getErrors())
+                );
+            }
+            
+            Yii::log("Student " . ($id == null ? "created" : "updated") . " successfully with ID: {$model->_id}", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+            
+            return array(
+                'success' => true,
+                'model' => $model,
+                'message' => 'Student ' . ($id == null ? "created" : "updated") . ' successfully!'
+            );
+        } catch (Exception $e) {
+            Yii::log("Error in ". ($id == null ? "create" : "update") . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.userHelper');
+            return array(
+                'success' => false,
+                'model' => $model,
+                'message' => 'An error occurred: ' . $e->getMessage() 
+            );
+        }
+    }
  
    
     // public static function findAll($criteria = null)
