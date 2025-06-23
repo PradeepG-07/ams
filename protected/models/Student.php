@@ -19,19 +19,17 @@ class Student extends EMongoDocument
     {
         return array(
             // ['roll_no,user_id,cgpa,class,hobbies', 'required'],
-            ['roll_no,user_id,cgpa,class,hobbies', 'safe'],
+            ['roll_no,user_id,cgpa,class,hobbies,profile_picture', 'safe'],
             ['roll_no', 'length', 'max' => 20],
             ['cgpa', 'numerical'],
             ['profile_picture', 'file', 'types' => 'jpg, jpeg, png', 'allowEmpty' => true],
-            ['cgpa','filter', 'filter' => "convertToNumber"],
-        );
+            ['cgpa', 'filter', 'filter' => function($value) {
+                return is_numeric($value) ? (float)$value : $value;
+            }],
+        );  
     }
 
-    public function convertToNumber($value)
-    {
-        return is_numeric($value) ? (float)$value : $value;
-    }
- 
+   
     public function attributeLabels()
     {
         return array(

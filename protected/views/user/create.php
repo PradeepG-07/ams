@@ -1,6 +1,6 @@
 <div class="form">
     <?php $this->renderPartial('_form', array(
-        'model' => $model,
+        'user' => $model,
         'student' => $student,
         'teacher' => $teacher,
     )); ?>

@@ -1,307 +1,270 @@
-<script src="https://cdn.tailwindcss.com"></script>
+<?php
+/* @var $this UserController */
+/* @var $user User */
+/* @var $student Student */
+/* @var $teacher Teacher */
+/* @var $form CActiveForm */
+?>
 
-<div class="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
-        <h2 class="text-2xl font-bold text-gray-800">User Registration Form</h2>
-    </div>
+<div class="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Create New User</h2>
     
     <?php $form = $this->beginWidget('CActiveForm', array(
         'id' => 'user-form',
         'enableAjaxValidation' => false,
-        'enableClientValidation' => true,
-        'clientOptions' => array(
-            'validateOnSubmit' => true,
-        ),
         'htmlOptions' => array(
-            'class' => 'p-6 space-y-6',
+            'class' => 'space-y-6',
             'enctype' => 'multipart/form-data'
-        )
+        ),
     )); ?>
-    
-        <!-- Basic User Information -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Full Name -->
-            <div>
-                <?php echo $form->labelEx($model, 'name', array('class' => 'block text-sm font-medium text-gray-700 mb-2')); ?>
-                <?php echo $form->textField($model, 'name', array(
-                    'maxlength' => 100,
-                    'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+
+    <!-- User Fields Section -->
+    <div class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">Basic Information</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="md:col-span-2">
+                <?php echo $form->labelEx($user, 'name', array('class' => 'block text-sm font-medium text-gray-700 mb-1')); ?>
+                <?php echo $form->textField($user, 'name', array(
+                    'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500',
+                    'placeholder' => 'Enter full name'
                 )); ?>
-                <?php echo $form->error($model, 'name', array('class' => 'text-red-500 text-sm mt-1')); ?>
+                <?php echo $form->error($user, 'name', array('class' => 'text-red-500 text-sm mt-1')); ?>
             </div>
-            
-            <!-- Email -->
+
             <div>
-                <?php echo $form->labelEx($model, 'email', array('class' => 'block text-sm font-medium text-gray-700 mb-2')); ?>
-                <?php echo $form->emailField($model, 'email', array(
-                    'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+                <?php echo $form->labelEx($user, 'email', array('class' => 'block text-sm font-medium text-gray-700 mb-1')); ?>
+                <?php echo $form->emailField($user, 'email', array(
+                    'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500',
+                    'placeholder' => 'Enter email address'
                 )); ?>
-                <?php echo $form->error($model, 'email', array('class' => 'text-red-500 text-sm mt-1')); ?>
+                <?php echo $form->error($user, 'email', array('class' => 'text-red-500 text-sm mt-1')); ?>
+            </div>
+
+            <div>
+                <?php echo $form->labelEx($user, 'password', array('class' => 'block text-sm font-medium text-gray-700 mb-1')); ?>
+                <?php echo $form->passwordField($user, 'password', array(
+                    'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500',
+                    'placeholder' => 'Enter password'
+                )); ?>
+                <?php echo $form->error($user, 'password', array('class' => 'text-red-500 text-sm mt-1')); ?>
             </div>
         </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Password -->
-            <div>
-                <?php echo $form->labelEx($model, 'password', array('class' => 'block text-sm font-medium text-gray-700 mb-2')); ?>
-                <?php echo $form->passwordField($model, 'password', array(
-                    'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                )); ?>
-                <?php echo $form->error($model, 'password', array('class' => 'text-red-500 text-sm mt-1')); ?>
-                <p class="text-gray-500 text-xs mt-1">Minimum 6 characters</p>
-            </div>
-            
-            <!-- Role -->
-            <div>
-                <?php echo $form->labelEx($model, 'role', array('class' => 'block text-sm font-medium text-gray-700 mb-2')); ?>
-                <?php echo $form->dropDownList($model, 'role', array(
-                    '' => 'Select Role',
-                    'admin' => 'Admin',
-                    'teacher' => 'Teacher',
-                    'student' => 'Student'
-                ), array(
-                    'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
-                    'onchange' => 'toggleRoleFields()'
-                )); ?>
-                <?php echo $form->error($model, 'role', array('class' => 'text-red-500 text-sm mt-1')); ?>
-            </div>
-        </div>
-        
+
         <!-- Address Section -->
-        <div class="border-t pt-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Address Information</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <?php echo CHtml::label('Address Line 1', 'address_line1', array('class' => 'block text-sm font-medium text-gray-700 mb-2')); ?>
-                    <?php echo CHtml::textField('address[address_line1]', '', array(
-                        'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                    )); ?>
-                </div>
-                
-                <div>
-                    <?php echo CHtml::label('Address Line 2', 'address_line2', array('class' => 'block text-sm font-medium text-gray-700 mb-2')); ?>
-                    <?php echo CHtml::textField('address[address_line2]', '', array(
-                        'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                    )); ?>
-                </div>
-                
-                <div>
-                    <?php echo CHtml::label('City', 'city', array('class' => 'block text-sm font-medium text-gray-700 mb-2')); ?>
-                    <?php echo CHtml::textField('address[city]', '', array(
-                        'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                    )); ?>
-                </div>
-                
-                <div>
-                    <?php echo CHtml::label('State', 'state', array('class' => 'block text-sm font-medium text-gray-700 mb-2')); ?>
-                    <?php echo CHtml::textField('address[state]', '', array(
-                        'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                    )); ?>
-                </div>
-                
-                <div>
-                    <?php echo CHtml::label('ZIP Code', 'zip', array('class' => 'block text-sm font-medium text-gray-700 mb-2')); ?>
-                    <?php echo CHtml::textField('address[zip]', '', array(
-                        'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                    )); ?>
-                </div>
-                
-                <div>
-                    <?php echo CHtml::label('Country', 'country', array('class' => 'block text-sm font-medium text-gray-700 mb-2')); ?>
-                    <?php echo CHtml::textField('address[country]', '', array(
-                        'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                    )); ?>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Student Fields -->
-        <div id="student-fields" class="border-t pt-6 hidden">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Student Information</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <?php echo CHtml::label('Roll Number', 'roll_no', array('class' => 'block text-sm font-medium text-gray-700 mb-2')); ?>
-                    <?php echo CHtml::textField('student[roll_no]', '', array(
-                        'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                    )); ?>
-                </div>
-                
-                <div>
-                    <?php echo CHtml::label('CGPA', 'cgpa', array('class' => 'block text-sm font-medium text-gray-700 mb-2')); ?>
-                    <?php echo CHtml::numberField('student[cgpa]', '', array(
-                        'step' => '0.1',
-                        'min' => '0',
-                        'max' => '10',
-                        'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                    )); ?>
-                </div>
-                
-                <div>
-                    <?php echo CHtml::label('Class', 'class', array('class' => 'block text-sm font-medium text-gray-700 mb-2')); ?>
-                    <?php echo CHtml::textField('student[class]', '', array(
-                        'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                    )); ?>
-                </div>
-                
-                <div>
-                    <?php echo CHtml::label('Profile Picture', 'profile_picture', array('class' => 'block text-sm font-medium text-gray-700 mb-2')); ?>
-                    <?php echo CHtml::fileField('student[profile_picture]', '', array(
-                        'accept' => 'image/*',
-                        'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                    )); ?>
-                </div>
-            </div>
-            
-            <!-- Hobbies Section -->
-            <div class="mt-6">
-                <?php echo CHtml::label('Hobbies', '', array('class' => 'block text-sm font-medium text-gray-700 mb-2')); ?>
-                <div id="hobbies-container" class="space-y-3">
-                    <div class="hobby-item flex gap-3">
-                        <?php echo CHtml::textField('student[hobbies][0][name]', '', array(
-                            'placeholder' => 'Hobby name',
-                            'class' => 'flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                        )); ?>
-                        <?php echo CHtml::textField('student[hobbies][0][description]', '', array(
-                            'placeholder' => 'Description',
-                            'class' => 'flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                        )); ?>
-                        <?php echo CHtml::button('Remove', array(
-                            'type' => 'button',
-                            'onclick' => 'removeHobby(this)',
-                            'class' => 'px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600'
-                        )); ?>
-                    </div>
-                </div>
-                <?php echo CHtml::button('Add Hobby', array(
-                    'type' => 'button',
-                    'onclick' => 'addHobby()',
-                    'class' => 'mt-3 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600'
-                )); ?>
-            </div>
-        </div>
-        
-        <!-- Teacher Fields -->
-        <div id="teacher-fields" class="border-t pt-6 hidden">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Teacher Information</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <?php echo CHtml::label('Employee ID', 'emp_id', array('class' => 'block text-sm font-medium text-gray-700 mb-2')); ?>
-                    <?php echo CHtml::textField('teacher[emp_id]', '', array(
-                        'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                    )); ?>
-                </div>
-                
-                <div>
-                    <?php echo CHtml::label('Salary', 'salary', array('class' => 'block text-sm font-medium text-gray-700 mb-2')); ?>
-                    <?php echo CHtml::numberField('teacher[salary]', '', array(
-                        'step' => '0.01',
-                        'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                    )); ?>
-                </div>
-                
+        <div class="mt-6">
+            <h4 class="text-md font-semibold text-gray-700 mb-3">Address Information</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="md:col-span-2">
-                    <?php echo CHtml::label('Designation', 'designation', array('class' => 'block text-sm font-medium text-gray-700 mb-2')); ?>
-                    <?php echo CHtml::textField('teacher[designation]', '', array(
-                        'maxlength' => 255,
-                        'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                    )); ?>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Address Line 1</label>
+                    <input type="text" name="User[address][address_line1]" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Enter address line 1">
                 </div>
-            </div>
-            
-            <!-- Classes Section -->
-            <div class="mt-6">
-                <?php echo CHtml::label('Classes', '', array('class' => 'block text-sm font-medium text-gray-700 mb-2')); ?>
-                <div id="classes-container" class="space-y-3">
-                    <div class="class-item flex gap-3">
-                        <?php echo CHtml::textField('teacher[classes][0]', '', array(
-                            'placeholder' => 'Class name',
-                            'class' => 'flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                        )); ?>
-                        <?php echo CHtml::button('Remove', array(
-                            'type' => 'button',
-                            'onclick' => 'removeClass(this)',
-                            'class' => 'px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600'
-                        )); ?>
-                    </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Address Line 2</label>
+                    <input type="text" name="User[address][address_line2]" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Enter address line 2 (optional)">
                 </div>
-                <?php echo CHtml::button('Add Class', array(
-                    'type' => 'button',
-                    'onclick' => 'addClass()',
-                    'class' => 'mt-3 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600'
-                )); ?>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">City</label>
+                    <input type="text" name="User[address][city]" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Enter city">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">State</label>
+                    <input type="text" name="User[address][state]" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Enter state">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
+                    <input type="text" name="User[address][zip]" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Enter ZIP code">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                    <input type="text" name="User[address][country]" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Enter country">
+                </div>
             </div>
         </div>
+    </div>
+
+    <!-- User Type Selection -->
+    <div class="bg-blue-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">User Type</h3>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Select User Type</label>
+            <select id="user-type-select" name=User[role] <?php if(isset($user) && $user->role) echo 'value="' . $user->role . '"'; ?> class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                <option value="">Select Type</option>
+                <option value="student" <?php if(isset($user) && $user->role == 'student') echo 'selected'; ?>>Student</option>
+                <option value="teacher" <?php if(isset($user) && $user->role == 'teacher') echo 'selected'; ?>  >Teacher</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Student Fields Section -->
+    <div id="student-fields" class="bg-green-50 p-4 rounded-lg" style="display: none;">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">Student Information</h3>
         
-        <!-- Submit Button -->
-        <div class="border-t pt-6">
-            <?php echo CHtml::submitButton($model->isNewRecord ? 'Register User' : 'Update User', array(
-                'class' => 'w-full md:w-auto px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
-            )); ?>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <?php echo $form->labelEx($student, 'roll_no', array('class' => 'block text-sm font-medium text-gray-700 mb-1')); ?>
+                <?php echo $form->textField($student, 'roll_no', array(
+                    'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500',
+                    'placeholder' => 'Enter roll number'
+                )); ?>
+                <?php echo $form->error($student, 'roll_no', array('class' => 'text-red-500 text-sm mt-1')); ?>
+            </div>
+
+            <div>
+                <?php echo $form->labelEx($student, 'cgpa', array('class' => 'block text-sm font-medium text-gray-700 mb-1')); ?>
+                <?php echo $form->numberField($student, 'cgpa', array(
+                    'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500',
+                    'placeholder' => 'Enter CGPA',
+                    'step' => '0.01',
+                    'min' => '0',
+                    'max' => '4'
+                )); ?>
+                <?php echo $form->error($student, 'cgpa', array('class' => 'text-red-500 text-sm mt-1')); ?>
+            </div>
+
+            <div>
+                <?php echo $form->labelEx($student, 'class', array('class' => 'block text-sm font-medium text-gray-700 mb-1')); ?>
+                <?php echo $form->textField($student, 'class', array(
+                    'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500',
+                    'placeholder' => 'Enter class'
+                )); ?>
+                <?php echo $form->error($student, 'class', array('class' => 'text-red-500 text-sm mt-1')); ?>
+            </div>
+
+            <div>
+                <?php echo $form->labelEx($student, 'profile_picture', array('class' => 'block text-sm font-medium text-gray-700 mb-1')); ?>
+                <?php echo $form->fileField($student, 'profile_picture', array(
+                    'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500',
+                    'accept' => 'image/*'
+                )); ?>
+                <?php echo $form->error($student, 'profile_picture', array('class' => 'text-red-500 text-sm mt-1')); ?>
+            </div>
         </div>
-    
+
+        <!-- Hobbies Section -->
+        <div class="mt-6">
+            <h4 class="text-md font-semibold text-gray-700 mb-3">Hobbies</h4>
+            <div id="hobbies-container">
+                <div class="hobby-item bg-white p-3 border rounded-md mb-3">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Hobby Name</label>
+                            <input type="text" name="Student[hobbies][0][name]" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" placeholder="Enter hobby name">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Description</label>
+                            <textarea name="Student[hobbies][0][description]" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" rows="2" placeholder="Enter hobby description"></textarea>
+                        </div>
+                    </div>
+                    <button type="button" class="mt-2 text-red-600 hover:text-red-800 text-sm remove-hobby">Remove Hobby</button>
+                </div>
+            </div>
+            <button type="button" id="add-hobby" class="mt-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">Add Another Hobby</button>
+        </div>
+    </div>
+
+    <!-- Teacher Fields Section -->
+    <div id="teacher-fields" class="bg-yellow-50 p-4 rounded-lg" style="display: none;">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">Teacher Information</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <?php echo $form->labelEx($teacher, 'emp_id', array('class' => 'block text-sm font-medium text-gray-700 mb-1')); ?>
+                <?php echo $form->textField($teacher, 'emp_id', array(
+                    'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500',
+                    'placeholder' => 'Enter employee ID'
+                )); ?>
+                <?php echo $form->error($teacher, 'emp_id', array('class' => 'text-red-500 text-sm mt-1')); ?>
+            </div>
+
+            <div>
+                <?php echo $form->labelEx($teacher, 'salary', array('class' => 'block text-sm font-medium text-gray-700 mb-1')); ?>
+                <?php echo $form->numberField($teacher, 'salary', array(
+                    'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500',
+                    'placeholder' => 'Enter salary',
+                    'min' => '0'
+                )); ?>
+                <?php echo $form->error($teacher, 'salary', array('class' => 'text-red-500 text-sm mt-1')); ?>
+            </div>
+
+            <div class="md:col-span-2">
+                <?php echo $form->labelEx($teacher, 'designation', array('class' => 'block text-sm font-medium text-gray-700 mb-1')); ?>
+                <?php echo $form->textField($teacher, 'designation', array(
+                    'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500',
+                    'placeholder' => 'Enter designation'
+                )); ?>
+                <?php echo $form->error($teacher, 'designation', array('class' => 'text-red-500 text-sm mt-1')); ?>
+            </div>
+
+            
+        </div>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="flex justify-end pt-6">
+        <button type="submit" class="px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            Create User
+        </button>
+    </div>
+
     <?php $this->endWidget(); ?>
 </div>
 
 <script>
-let hobbyCount = 1;
-let classCount = 1;
-
-function toggleRoleFields() {
-    const role = document.getElementById('<?php echo CHtml::activeId($model, 'role'); ?>').value;
+document.addEventListener('DOMContentLoaded', function() {
+    const userTypeSelect = document.getElementById('user-type-select');
     const studentFields = document.getElementById('student-fields');
     const teacherFields = document.getElementById('teacher-fields');
-    
-    // Hide all role-specific fields
-    studentFields.classList.add('hidden');
-    teacherFields.classList.add('hidden');
-    
-    // Show relevant fields based on role
-    if (role === 'student') {
-        studentFields.classList.remove('hidden');
-    } else if (role === 'teacher') {
-        teacherFields.classList.remove('hidden');
-    }
-}
+    const addHobbyBtn = document.getElementById('add-hobby');
+    const hobbiesContainer = document.getElementById('hobbies-container');
+    let hobbyIndex = 1;
 
-function addHobby() {
-    const container = document.getElementById('hobbies-container');
-    const hobbyItem = document.createElement('div');
-    hobbyItem.className = 'hobby-item flex gap-3';
-    hobbyItem.innerHTML = `
-        <input type="text" name="student[hobbies][${hobbyCount}][name]" placeholder="Hobby name"
-            class="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-        <input type="text" name="student[hobbies][${hobbyCount}][description]" placeholder="Description"
-            class="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-        <button type="button" onclick="removeHobby(this)" class="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">Remove</button>
-    `;
-    container.appendChild(hobbyItem);
-    hobbyCount++;
-}
+    // Handle user type selection
+    userTypeSelect.addEventListener('change', function() {
+        const selectedType = this.value;
+        
+        studentFields.style.display = 'none';
+        teacherFields.style.display = 'none';
+        
+        if (selectedType === 'student') {
+            studentFields.style.display = 'block';
+        } else if (selectedType === 'teacher') {
+            teacherFields.style.display = 'block';
+        }
+    });
 
-function removeHobby(button) {
-    const container = document.getElementById('hobbies-container');
-    if (container.children.length > 1) {
-        button.parentElement.remove();
-    }
-}
+    // Add hobby functionality
+    addHobbyBtn.addEventListener('click', function() {
+        const hobbyItem = document.createElement('div');
+        hobbyItem.className = 'hobby-item bg-white p-3 border rounded-md mb-3';
+        hobbyItem.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Hobby Name</label>
+                    <input type="text" name="Student[hobbies][${hobbyIndex}][name]" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" placeholder="Enter hobby name">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Description</label>
+                    <textarea name="Student[hobbies][${hobbyIndex}][description]" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" rows="2" placeholder="Enter hobby description"></textarea>
+                </div>
+            </div>
+            <button type="button" class="mt-2 text-red-600 hover:text-red-800 text-sm remove-hobby">Remove Hobby</button>
+        `;
+        
+        hobbiesContainer.appendChild(hobbyItem);
+        hobbyIndex++;
+    });
 
-function addClass() {
-    const container = document.getElementById('classes-container');
-    const classItem = document.createElement('div');
-    classItem.className = 'class-item flex gap-3';
-    classItem.innerHTML = `
-        <input type="text" name="teacher[classes][${classCount}]" placeholder="Class name"
-            class="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-        <button type="button" onclick="removeClass(this)" class="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">Remove</button>
-    `;
-    container.appendChild(classItem);
-    classCount++;
-}
-
-function removeClass(button) {
-    const container = document.getElementById('classes-container');
-    if (container.children.length > 1) {
-        button.parentElement.remove();
-    }
-}
+    // Remove hobby functionality
+    hobbiesContainer.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-hobby')) {
+            e.target.closest('.hobby-item').remove();
+        }
+    });
+});
 </script>

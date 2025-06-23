@@ -72,9 +72,6 @@ class UserController extends Controller
                         $student->attributes = $_POST['Student'];
                         $student->user_id = $model->_id; // Assuming user_id is the foreign key in Student
                         if ($student->save()) {
-                            print_r("saved student");
-                            exit;
-                            // If student is saved successfully, redirect to index
                             $this->refresh();
                         } else {
                             $model->delete();
@@ -172,8 +169,42 @@ class UserController extends Controller
                 'message' => 'An error occurred while deleting the user: ' . $e->getMessage()
             ));
         }
-        
     }
+
+    public function actionUpdate($id){
+        try{
+            $user = UserHelper::loadUserById(new ObjectId($id));
+            if (!$user) {
+                throw new CHttpException(404, 'User not found.');
+            }
+            // $ = null;
+            $student = new Student();
+            $teacher = new Teacher();
+            if($user->role == User::ROLE_TEACHER){
+                $teacher = TeacherHelper::loadTeacherByUserId(new ObjectId($id));
+                if (!$teacher) {
+                    throw new CHttpException(404, 'Teacher not found.');
+                }
+
+            } elseif($user->role == User::ROLE_STUDENT){
+                $student = StudentHelper::loadStudentByUserId(new ObjectId($id));
+                if (!$student) {
+                    throw new CHttpException(404, 'Student not found.');
+                }
+            } else {
+                throw new CHttpException(400, 'Invalid role specified.');
+            }
+            $this->render('_form', array(
+                'user' => $user,
+                'student' => $student,
+                'teacher' => $teacher,
+                
+            ));
+            return;
+        } catch (Exception $e) {
+            Yii::log("Error updating user: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.controllers.UserController');
+            throw new CHttpException(500, 'An error occurred while updating user: ' . $e->getMessage());
+        }
    
-   
+    }
 }

@@ -138,7 +138,7 @@ function renderTable(students) {
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <div class="flex space-x-2">
-                    <a href="<?= Yii::app()->createUrl('student/update') ?>?id=${student._id.$oid}" 
+                    <a href="<?= Yii::app()->createUrl('user/update') ?>?id=${student.user_id.$oid}" 
                        class="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 py-1 px-3 rounded-md transition duration-200">
                         Edit
                     </a>
