@@ -43,7 +43,7 @@ class StudentController extends Controller
             ),
             array(
                 'allow',
-                'actions' => array('dashboard','index', 'stats', 'daywise', 'profile', 'getProfile', 'uploadProfilePicture', 'removeProfilePicture'),
+                'actions' => array('dashboard','index','getAllStudentsofclass', 'stats', 'daywise', 'profile', 'getProfile', 'uploadProfilePicture', 'removeProfilePicture'),
                 'users' => array('*'),
             ),
             array(
@@ -84,14 +84,35 @@ class StudentController extends Controller
         }
     }
 
-    private function sendAjaxResponseIfAjax($students,$total)
+    public function actionGetAllStudentsOfClass($classId)
     {
-        if (Yii::app()->request->isAjaxRequest) {
+        try {
+            Yii::log("Fetching students for class ID: $classId", CLogger::LEVEL_INFO, 'application.controllers.StudentController');
+            $classId = new ObjectId($classId); // Ensure classId is an ObjectId
+            $students = StudentHelper::getStudentsFromClassName($classId);
+            // print_r(CJSON::encode($students));
+            // exit;
+            $total = count($students);
+            $this->sendAjaxResponseIfAjax($students, $total);
             echo CJSON::encode(array(
                 'success' => true,
                 'total' => $total,
                 'students' =>  $students,
             ));
+        } catch (Exception $e) {
+            Yii::log("Error fetching students for class ID: $classId - " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.controllers.StudentController');
+            throw new CHttpException(500, 'An error occurred while fetching students: ' . $e->getMessage());
+        }
+    }
+
+    private function sendAjaxResponseIfAjax($students,$total)
+    {
+        if (Yii::app()->request->isAjaxRequest) {
+            print_r(CJSON::encode(array(
+                'success' => true,
+                'total' => $total,
+                'students' =>  $students,
+            )));
             Yii::app()->end();
         }
     }

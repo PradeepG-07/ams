@@ -36,6 +36,7 @@
 					<li><a href="<?php echo Yii::app()->createUrl('teacher/index'); ?>" class="hover:text-gray-400">Manage Teachers</a></li>
 					<li><a href="<?php echo Yii::app()->createUrl('classes/index'); ?>" class="hover:text-gray-400">Manage Classes</a></li>
 					<li><a href="<?php echo Yii::app()->createUrl('user/create'); ?>" class="hover:text-gray-400">Create User</a></li>
+					<li><a href="<?php echo Yii::app()->createUrl('attendance/manage'); ?>" class="hover:text-gray-400">Manage Attendance</a></li>
 				</ul>
 				<?php elseif (Yii::app()->user->isTeacher()): ?>
 				<!-- Teacher Navigation -->
@@ -62,7 +63,7 @@
 					$profilePicture = null;
 					if (Yii::app()->user->isStudent()) {
 						$studentId = Yii::app()->user->id;
-						$student = StudentHelper::getStudentById($studentId);
+						$student = StudentHelper::loadStudentById($studentId);
 						if ($student && !empty($student->profile_picture)) {
 							$profilePicture = $student->profile_picture;
 						}

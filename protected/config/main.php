@@ -45,7 +45,7 @@ return array(
             'class' => 'WebUser',
             // enable cookie-based authentication
             'allowAutoLogin' => true,
-            'loginUrl' => array('auth/login'),
+            'loginUrl' => array('site/login'),
         ),
 
         'session' => array(

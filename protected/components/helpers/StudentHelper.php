@@ -179,22 +179,22 @@ class StudentHelper
         }
     }
 
-    public static function getStudentsFromClassName($className)
+    public static function getStudentsFromClassName($classId)
     {
-        Yii::log("Fetching students for class ID: $className", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+        Yii::log("Fetching students for class ID: $classId", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
         try {
             $criteria = new EMongoCriteria();
-            $criteria->addCond('class', '==', $className);
+            $criteria->addCond('class', '==', $classId);
             $students = Student::model()->findAll($criteria);
             if ($students) {
-                Yii::log("Students fetched successfully for class ID: $className", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+                Yii::log("Students fetched successfully for class ID: $classId", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
                 return $students;
             } else {
-                Yii::log("No students found for class ID: $className", CLogger::LEVEL_WARNING, 'application.helpers.studentHelper');
+                Yii::log("No students found for class ID: $classId", CLogger::LEVEL_WARNING, 'application.helpers.studentHelper');
                 return [];
             }
         } catch (Exception $e) {
-            Yii::log("Error fetching students for class ID: $className - " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+            Yii::log("Error fetching students for class ID: $classId - " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
             throw new CHttpException(500, 'An error occurred while fetching students: ' . $e->getMessage());
         }
     }
