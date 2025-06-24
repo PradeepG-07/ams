@@ -166,7 +166,11 @@ class ClassesHelper{
             $classes = Classes::model()->findAll();
             Yii::log("Fetched " . count($classes) . " classes.", CLogger::LEVEL_INFO, 'application.helpers.classesHelper');
             if($classes){
-                return $classes;
+                $result = [];
+                foreach($classes as $class){
+                    $result[(string)$class->_id] = $class->name;
+                }
+                return $result;            
             } else {
                 return [];
             }
