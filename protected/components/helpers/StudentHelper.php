@@ -178,5 +178,25 @@ class StudentHelper
             );
         }
     }
+
+    public static function getStudentsFromClassName($className)
+    {
+        Yii::log("Fetching students for class ID: $className", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+        try {
+            $criteria = new EMongoCriteria();
+            $criteria->addCond('class', '==', $className);
+            $students = Student::model()->findAll($criteria);
+            if ($students) {
+                Yii::log("Students fetched successfully for class ID: $className", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+                return $students;
+            } else {
+                Yii::log("No students found for class ID: $className", CLogger::LEVEL_WARNING, 'application.helpers.studentHelper');
+                return [];
+            }
+        } catch (Exception $e) {
+            Yii::log("Error fetching students for class ID: $className - " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+            throw new CHttpException(500, 'An error occurred while fetching students: ' . $e->getMessage());
+        }
+    }
 }
  

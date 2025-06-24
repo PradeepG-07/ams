@@ -167,5 +167,26 @@ class ClassesController extends Controller
         }
     }
 
+    
 
+    public function actionGetClass($className){
+        try {
+            Yii::log("Fetching students for class ID: $className", CLogger::LEVEL_INFO, 'application.controllers.ClassesController');
+            $students = StudentHelper::getStudentsFromClassName($className);
+            if ($students) {
+                Yii::log("Students fetched successfully for class name: $className", CLogger::LEVEL_INFO, 'application.controllers.ClassesController');
+                $this->redirect('classlist', [
+                    'students' => $students,
+                    'className' => $className,
+                ]);
+                Yii::app()->end();
+            } else {
+                Yii::log("No students found for class name: $className", CLogger::LEVEL_WARNING, 'application.controllers.ClassesController');
+                throw new CHttpException(404, 'No students found for the specified class.');
+            }
+        } catch (Exception $e) {
+            Yii::log("Error fetching students for class name: $className - " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.controllers.ClassesController');
+            throw new CHttpException(500, 'An error occurred while fetching students for the class: ' . $e->getMessage());
+        }
+    }
 }
