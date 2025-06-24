@@ -160,5 +160,20 @@ class ClassesHelper{
         return Classes::model()->count($criteria);
     }
 
-
+    public static function getAllClasses(){
+        try{
+            Yii::log("Fetching all classes", CLogger::LEVEL_TRACE, 'application.helpers.classesHelper');
+            $classes = Classes::model()->findAll();
+            Yii::log("Fetched " . count($classes) . " classes.", CLogger::LEVEL_INFO, 'application.helpers.classesHelper');
+            if($classes){
+                return $classes;
+            } else {
+                return [];
+            }
+        }
+        catch(Exception $e){
+            Yii::log("Error fetching all classes: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.classesHelper');
+            throw $e; // Re-throw the exception for further handling
+        }
+    }
 }
