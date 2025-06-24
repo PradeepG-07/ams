@@ -26,27 +26,23 @@ class UserIdentity extends CUserIdentity
      * @return boolean whether authentication succeeds.
      */
     public function authenticate()
-    {
-       
-        //Check for the login details of the user
-        $user = User::model()->findByAttributes(array('email' => $this->_email));
-       
-        if($user === null) {
-            $this->errorCode = self::ERROR_EMAIL_INVALID;
-            return !$this->errorCode;
-        }else if($this->validatePassword($user->password) === false) {
-            $this->errorCode = self::ERROR_PASSWORD_INVALID;
-            return !$this->errorCode;
-        }else{
-            $this->_id = (string)$user->_id;
-            $this->_email = $user->email;
-            $this->_role = $user->role;
-            $this->errorCode = self::ERROR_NONE;
-            return !$this->errorCode;
-        }
-     
-        // If admin do nothing
-        // If Student 
+{
+   
+    //Check for the login details of the user
+    $user = User::model()->findByAttributes(array('email' => $this->_email));
+   
+    if($user === null) {
+        $this->errorCode = self::ERROR_EMAIL_INVALID;
+        return !$this->errorCode;
+    }else if($this->validatePassword($user->password) === false) {
+        $this->errorCode = self::ERROR_PASSWORD_INVALID;
+        return !$this->errorCode;
+    }else{
+        $this->_id = (string)$user->_id;
+        $this->_email = $user->email;
+        $this->_role = $user->role;
+        
+        // Handle role-specific logic BEFORE setting error code
         switch ($user->role) {
             case User::ROLE_ADMIN:
                 // Admin logic can be handled here if needed
@@ -54,73 +50,30 @@ class UserIdentity extends CUserIdentity
             case User::ROLE_TEACHER:
                 // Teacher logic can be handled here if needed
                 {
-                    $teacher = TeacherHelper::loadTeacherByUserId($this->_id);
-                    $this->_teacherId = (string)$teacher->_id;
+                    $teacher = TeacherHelper::loadTeacherByUserId($user->_id);
+                    if ($teacher) {
+                        $this->_teacherId = (string)$teacher->_id;
+                    }
                 }
                 break;
             case User::ROLE_STUDENT:
                 // Student logic can be handled here if needed
                 {
-                    $student = StudentHelper::loadStudentByUserId($this->_id);
-                    $this->_studentId = (string)$student->_id;
+                    $student = StudentHelper::loadStudentByUserId($user->_id);
+                    if ($student) {
+                        $this->_studentId = (string)$student->_id;
+                    }
                 }
                 break;
             default:
                 $this->errorCode = self::ERROR_EMAIL_INVALID;
                 return !$this->errorCode;
         }
-
-        // if ($this->username === $adminUsername) {
-        //     if ($this->password === $adminPassword) {
-        //         $this->_id = 'admin';
-        //         $this->_email = Yii::app()->params['adminEmail'] ?? 'admin@example.com';
-        //         $this->_role = 'admin';
-        //         $this->errorCode = self::ERROR_NONE;
-        //     } else {
-        //         $this->errorCode = self::ERROR_PASSWORD_INVALID;
-        //         return !$this->errorCode;
-        //     }
-        // } else {
-        //     // Try to find a teacher
-        //     // echo $this->username;
-        //     $teacher = Teacher::model()->findByAttributes(array('email' => $this->username));
-        //     // print_r(json_encode($teacher,JSON_PRETTY_PRINT));
-        //     if ($teacher !== null && $this->validatePassword($teacher->password)) {
-                
-        //         $this->_id = (string)$teacher->_id;
-        //         $this->_email = $teacher->email;
-        //         $this->username = $teacher->email;
-        //         $this->_role = 'teacher';
-        //         $this->errorCode = self::ERROR_NONE;
-        //     } else {
-        //         // Try to find a student
-        //         $student = Student::model()->findByAttributes(array('email' => $this->username));
-                
-        //         if ($student !== null && $this->validatePassword($student->password)) {
-        //             $this->_id = (string)$student->_id;
-        //             $this->_email = $student->email;
-        //             $this->username = $student->email;
-        //             $this->_role = 'student';
-        //             $this->errorCode = self::ERROR_NONE;
-        //         } else {
-        //             $this->errorCode = self::ERROR_USERNAME_INVALID;
-        //             return !$this->errorCode;
-        //         }
-        //     }
-        // }
         
-        // Generate JWT token
-        // $this->_token = JWTHelper::generateToken($this->_id, $this->_email, $this->_role);
-        
-        // // Store user data in session
-        // $this->setState('user_id', (string)$this->_id);
-        // $this->setState('username', $this->username);
-        // $this->setState('email', $this->_email);
-        // $this->setState('user_type', $this->_role);
-        // $this->setState('jwt_token', $this->_token);
-        
-        // return !$this->errorCode;
+        $this->errorCode = self::ERROR_NONE;
+        return !$this->errorCode;
     }
+}
     
     /**
      * Validate password (implement your own logic)
@@ -165,7 +118,7 @@ class UserIdentity extends CUserIdentity
     public function getTeacherId()
     {
         if ($this->_role === User::ROLE_TEACHER) {
-            return $this->_id; // Assuming _id is the teacher ID
+            return $this->_teacherId; 
         }
         return null; // Not a teacher
     }
@@ -175,7 +128,7 @@ class UserIdentity extends CUserIdentity
     public function getStudentId()
     {
         if ($this->_role === User::ROLE_STUDENT) {
-            return $this->_id; // Assuming _id is the student ID
+            return $this->_studentId;
         }
         return null; // Not a student
     }

@@ -85,11 +85,64 @@ class AttendanceController extends Controller
         }
     }
     public function actionSave(){
-        print_r($_POST);
+        // print_r($_POST);
+        // check if date is <= today
+        
+        try {
+            Yii::log("Saving attendance for class ID: " . $_POST['class_id'], CLogger::LEVEL_INFO, 'application.controllers.AttendanceController');
+            // Validate class_id
+            $result = AttendanceHelper::saveAttendance($_POST);
+            if ($result['success']) {
+                echo CJSON::encode(array(
+                    'success' => true,
+                    'message' => $result['message']
+                ));
+            } else {
+                echo CJSON::encode(array(
+                    'success' => false,
+                    'message' => $result['message']
+                ));
+            }
+        } catch (Exception $e) {
+            Yii::log("Error saving attendance: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.controllers.AttendanceController');
+            echo CJSON::encode(array(
+                'success' => false,
+                'message' => 'An error occurred while saving attendance: ' . $e->getMessage()
+            ));
+        }
+
     }
 
     public function actionManage(){
-        $classes = ClassesHelper::getAllClasses();
+        Yii::log("Displaying manage attendance page", CLogger::LEVEL_INFO, 'application.controllers.AttendanceController');
+        $classes = [];
+        $teacherId = Yii::app()->user->getState('teacher_id');
+        // print_r($teacherId);
+        if(Yii::app()->user->isTeacher()){
+            $teacher = TeacherHelper::getTeacherWithPopulatedClasses(new ObjectId(Yii::app()->user->getState('teacher_id')));
+            if(!$teacher){
+                throw new CHttpException(404, 'Teacher not found.');
+            }
+            // echo "<pre>";
+            // print_r($teacher);
+            // exit;
+            $classes = [];
+            // echo "<pre>";
+            // print_r($teacher);
+            // print_r($teacher->classes);
+            // exit;
+            foreach($teacher["classes"] as $class){
+                $classes[(string)$class['_id']] = $class['class_name'];
+            }
+        }
+        else if(Yii::app()->user->isAdmin()){
+            $classes = ClassesHelper::getAllClasses();
+        }
+        else{
+            throw new CHttpException(403, 'You are not allowed to access this page.');
+        }
+        // print_r($classes);
+        // exit;
         $this->render('manage', array(
             'classes' => $classes,
         ));

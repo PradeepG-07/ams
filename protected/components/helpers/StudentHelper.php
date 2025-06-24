@@ -217,5 +217,25 @@ class StudentHelper
             throw new CHttpException(500, 'An error occurred while fetching students: ' . $e->getMessage());
         }
     }
+
+    public static function validateStudentIds($student_ids){
+        // receives array of student ids
+        Yii::log("Validating student IDs: " . json_encode($student_ids), CLogger::LEVEL_TRACE, 'application.helpers.studentHelper');
+        if (!is_array($student_ids) || empty($student_ids)) {
+            Yii::log("Invalid student IDs format, expected non-empty array.", CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+            throw new InvalidArgumentException('Student IDs must be a non-empty array.');
+        }
+        $criteria = new EMongoCriteria();
+        $criteria->addCond('_id', 'in', array_map(function($id) {
+            return new ObjectId($id);
+        }, $student_ids));
+        $students = Student::model()->count($criteria);
+        if ($students !== count($student_ids)) {
+            Yii::log("Some student IDs are invalid.", CLogger::LEVEL_WARNING, 'application.helpers.studentHelper');
+            return false;
+        }
+        Yii::log("All student IDs are valid.", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+        return true;
+    }
 }
  

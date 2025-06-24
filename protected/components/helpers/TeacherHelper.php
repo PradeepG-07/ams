@@ -130,8 +130,13 @@ class TeacherHelper
     public static function getTeacherWithPopulatedClasses($teacherId)
     {
         Yii::log("Getting teacher with populated classes for teacher ID: $teacherId", CLogger::LEVEL_TRACE, 'application.helpers.teacherHelper');
-        
+        var_dump($teacherId);
         $result = Teacher::model()->startAggregation()
+            ->addStage([
+                '$match' => [
+                    '_id' => $teacherId
+                ]
+            ])
             ->addStage([
                 '$lookup' => [
                     'from' => 'classes',
@@ -140,12 +145,12 @@ class TeacherHelper
                     'as' => 'classes'
                 ]
             ])
-            ->addStage([
-                '$unwind' => [
-                    'path' => '$classes',
-                    'preserveNullAndEmptyArrays' => true
-                ]
-            ])
+            // ->addStage([
+            //     '$unwind' => [
+            //         'path' => '$classes',
+            //         'preserveNullAndEmptyArrays' => true
+            //     ]
+            // ])
             ->aggregate();
         
         $teacher = $result['result'] ?? null;
@@ -155,7 +160,7 @@ class TeacherHelper
             throw new CHttpException(404, 'The requested teacher does not exist.');
         }
         
-        return $teacher;
+        return $teacher[0];
     }
 
     public static function count($conditions = array())
