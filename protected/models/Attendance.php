@@ -2,7 +2,8 @@
 class Attendance extends EMongoDocument
 {
     public $date;
-    public $classes = [];
+    public $class_id;
+    public $students = array();
 
 
     public function getCollectionName()
@@ -15,7 +16,8 @@ class Attendance extends EMongoDocument
         return array(
             ["date", 'required'],
             ["date", 'date', 'format' => 'dd-MM-yyyy'],
-            ["classes", 'safe']
+            ["class_id", 'safe'],
+            ["students", 'safe']
         );
     }
 
@@ -23,7 +25,8 @@ class Attendance extends EMongoDocument
     {
         return array(
             'date' => 'Date',
-            'classes' => 'Classes',
+            'class_id' => 'Class',
+            'students' => 'Students',
         );
     }
     public static function model($className = __CLASS__)

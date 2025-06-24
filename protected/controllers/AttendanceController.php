@@ -43,7 +43,7 @@ class AttendanceController extends Controller
             ),
             array(
                 'allow',
-                'actions' => array('dashboard','manage','index','create', 'stats', 'daywise', 'profile', 'getProfile', 'uploadProfilePicture', 'removeProfilePicture'),
+                'actions' => array('dashboard','save','manage','index','create', 'stats', 'daywise', 'profile', 'getProfile', 'uploadProfilePicture', 'removeProfilePicture'),
                 'users' => array('*'),
             ),
             array(
@@ -83,6 +83,9 @@ class AttendanceController extends Controller
             Yii::log("Error listing classes: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.controllers.ClassesController');
             throw new CHttpException(500, 'An error occurred while listing classes: ' . $e->getMessage());
         }
+    }
+    public function actionSave(){
+        print_r($_POST);
     }
 
     public function actionManage(){
