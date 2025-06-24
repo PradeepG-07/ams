@@ -78,7 +78,7 @@ class UserHelper
                 );
             }
             
-            Yii::log("User " . ($id == null ? "created" : "updated") . " successfully with ID: {$model->_id}", CLogger::LEVEL_INFO, 'application.helpers.userHelper');
+            Yii::log("User " . ($id == null ? "created" : "updated") . " successfully with ID: {$id}", CLogger::LEVEL_INFO, 'application.helpers.userHelper');
             
             return array(
                 'success' => true,
