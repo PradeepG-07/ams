@@ -30,24 +30,14 @@ class UserController extends Controller
     {
         return array(
             array(
-                'allow', // allow all users to perform 'index','register' and 'login' actions
-                'actions' => array('index', 'register', 'login'),
+                'allow', 
+                'actions' => array('create', 'update', 'delete'),
                 'users' => array('*'),
             ),
             array(
-                'allow', // allow authenticated user to perform 'view', 'update' and 'delete' actions
-                'actions' => array('view', 'update', 'delete'),
+                'deny', // deny all users
                 'users' => array('*'),
             ),
-            // array(
-            //     'allow', // allow admin user to perform 'admin' and 'delete' actions
-            //     'actions' => array('admin', 'delete'),
-            //     'users' => array('admin'),
-            // ),
-            // array(
-            //     'deny', // deny all users
-            //     'users' => array('*'),
-            // ),
         );
     }
 

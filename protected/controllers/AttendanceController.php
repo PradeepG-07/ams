@@ -38,18 +38,8 @@ class AttendanceController extends Controller
         return array(
             array(
                 'allow',
-                'actions' => array('index', 'view'),
-                'users' => array('*'),
-            ),
-            array(
-                'allow',
-                'actions' => array('dashboard','save','manage','index','create', 'stats', 'daywise', 'profile', 'getProfile', 'uploadProfilePicture', 'removeProfilePicture'),
-                'users' => array('*'),
-            ),
-            array(
-                'allow',
-                'actions' => array('admin', 'delete', 'update'),
-                'users' => array('*'),
+                'actions' => array('index', 'save', 'manage'),
+                'expression' => "Yii::app()->user->isTeacher() || Yii::app()->user->isAdmin()",
             ),
             array(
                 'deny',

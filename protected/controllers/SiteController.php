@@ -98,6 +98,16 @@ class SiteController extends Controller
                 if ($model->validate() && $model->login()) {
                     Yii::log("User successfully logged in: " . Yii::app()->user->name, CLogger::LEVEL_INFO, 'application.site.login');
                     Yii::app()->user->setFlash('success', 'Welcome back, ' . Yii::app()->user->name . '!');
+                    if(Yii::app()->user->isTeacher()) {
+                        Yii::log("Redirecting teacher to dashboard", CLogger::LEVEL_INFO, 'application.site.login');
+                        $this->redirect(array('classes/index'));
+                    } elseif(Yii::app()->user->isStudent()) {
+                        Yii::log("Redirecting student to dashboard", CLogger::LEVEL_INFO, 'application.site.login');
+                        $this->redirect(array('student/dashboard'));
+                    } elseif(Yii::app()->user->isAdmin()) {
+                        Yii::log("Redirecting admin to dashboard", CLogger::LEVEL_INFO, 'application.site.login');
+                        $this->redirect(array('student/index'));
+                    }
                     $this->redirect(Yii::app()->user->returnUrl);
                 } else {
                     Yii::log("Login failed for username: " . $model->email, CLogger::LEVEL_WARNING, 'application.site.login');

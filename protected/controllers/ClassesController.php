@@ -38,18 +38,13 @@ class ClassesController extends Controller
         return array(
             array(
                 'allow',
-                'actions' => array('index', 'view'),
-                'users' => array('*'),
+                'actions' => array('create', 'delete', 'update'),
+                'expression' => "Yii::app()->user->isAdmin()",
             ),
             array(
                 'allow',
-                'actions' => array('dashboard','index','create', 'stats', 'daywise', 'profile', 'getProfile', 'uploadProfilePicture', 'removeProfilePicture'),
-                'users' => array('*'),
-            ),
-            array(
-                'allow',
-                'actions' => array('admin', 'delete', 'update'),
-                'users' => array('*'),
+                'actions' => array('getClass', 'index'),
+                'expression' => "Yii::app()->user->isAdmin() || Yii::app()->user->isTeacher() || Yii::app()->user->isStudent()",
             ),
             array(
                 'deny',

@@ -37,13 +37,12 @@
 					<li><a href="<?php echo Yii::app()->createUrl('classes/index'); ?>" class="hover:text-gray-400">Manage Classes</a></li>
 					<li><a href="<?php echo Yii::app()->createUrl('user/create'); ?>" class="hover:text-gray-400">Create User</a></li>
 					<li><a href="<?php echo Yii::app()->createUrl('attendance/manage'); ?>" class="hover:text-gray-400">Manage Attendance</a></li>
-					<li><a href="<?php echo Yii::app()->createUrl('attendance/attendancestats'); ?>" class="hover:text-gray-400">Stats</a></li>
 
 				</ul>
 				<?php elseif (Yii::app()->user->isTeacher()): ?>
 				<!-- Teacher Navigation -->
 				<ul class="flex space-x-4">
-					<li><a href="<?php echo Yii::app()->createUrl('teacher/classes'); ?>" class="hover:text-gray-400">Classes</a></li>
+					<li><a href="<?php echo Yii::app()->createUrl('classes/index'); ?>" class="hover:text-gray-400">Classes</a></li>
 					<li><a href="<?php echo Yii::app()->createUrl('attendance/manage'); ?>" class="hover:text-gray-400">Attendance</a></li>
 				</ul>
 				<?php elseif (Yii::app()->user->isStudent()): ?>

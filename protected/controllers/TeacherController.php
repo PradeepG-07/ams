@@ -26,17 +26,10 @@ class TeacherController extends Controller
     public function accessRules()
     {
         return array(
-            array('allow',
-                'actions'=>array('index', 'view'),
-                'users'=>array('*'),
-            ),
-            array('allow',
-                'actions'=>array('classes', 'classDetails', 'attendance', 'login', 'saveAttendance'),
-                'users'=>array('*'),
-            ),
-            array('allow',
-                'actions'=>array('admin', 'delete'),
-                'users'=>array('*'),
+            array(
+                'allow',
+                'actions'=>array('index'),
+                'expression'=>"Yii::app()->user->isAdmin() || Yii::app()->user->isTeacher()",
             ),
             array('deny',
                 'users'=>array('*'),

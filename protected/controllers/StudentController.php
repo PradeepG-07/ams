@@ -38,18 +38,13 @@ class StudentController extends Controller
         return array(
             array(
                 'allow',
-                'actions' => array('index', 'view'),
-                'users' => array('*'),
+                'actions' => array('dashboard'),
+                'expression' => "Yii::app()->user->isStudent()",
             ),
             array(
                 'allow',
-                'actions' => array('dashboard','index','getAllStudentsofclass', 'stats', 'daywise', 'profile', 'getProfile', 'uploadProfilePicture', 'removeProfilePicture'),
-                'users' => array('*'),
-            ),
-            array(
-                'allow',
-                'actions' => array('admin', 'delete'),
-                'users' => array('*'),
+                'actions' => array('index', 'getAllStudentsOfClass'),
+                'expression' => "Yii::app()->user->isAdmin() || Yii::app()->user->isTeacher()",
             ),
             array(
                 'deny',
