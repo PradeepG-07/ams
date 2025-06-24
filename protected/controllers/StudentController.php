@@ -58,6 +58,16 @@ class StudentController extends Controller
         );
     }
 
+    public function actionDashboard(){
+        $studentId = Yii::app()->user->getState('student_id');
+        $studentId = new ObjectId($studentId); // Ensure studentId is an ObjectId
+        $studentData = StudentHelper::getStudentWithClassAndUserPopulated($studentId);
+
+        $this->render('dashboard', array(
+            'student' => $studentData,
+        ));
+    }
+
     /**
      * Displays a list of all students
      */

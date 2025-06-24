@@ -298,6 +298,60 @@ class StudentHelper
         }
     }
 
+
+    public static function getStudentWithClassAndUserPopulated($studentId)
+    {
+        Yii::log("Fetching student with ID: $studentId", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+        try {
+            $ret = Student::model()->startAggregation()
+                ->addStage([
+                    '$match' => [
+                        '_id' => $studentId 
+                    ]
+                ])
+                ->addStage([
+                    '$lookup' => [
+                        'from' => 'classes',
+                        'localField' => 'class',
+                        'foreignField' => '_id',
+                        'as' => 'class_info'
+                    ]
+                ])
+                ->addStage([
+                    '$lookup' => [
+                        'from' => 'users',
+                        'localField' => 'user_id',
+                        'foreignField' => '_id',
+                        'as' => 'user',
+                    ]
+                ])
+                ->addStage([
+                    '$unwind' => [
+                        'path' => '$user',
+                        'preserveNullAndEmptyArrays' => true
+                    ]
+                ])
+                ->addStage([
+                    '$unwind' => [
+                        'path' => '$class_info',
+                        'preserveNullAndEmptyArrays' => true
+                    ]
+                ])
+                ->aggregate();
+            $students = $ret['result'] ?? [];
+            if ($students) {
+                Yii::log("Students fetched successfully for student ID: $studentId", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+                return $students[0];
+            } else {
+                Yii::log("No students found for student ID: $studentId", CLogger::LEVEL_WARNING, 'application.helpers.studentHelper');
+                return [];
+            }
+        } catch (Exception $e) {
+            Yii::log("Error fetching students for student ID: $studentId - " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+            throw new CHttpException(500, 'An error occurred while fetching students: ' . $e->getMessage());
+        }
+    }
+
     public static function validateStudentIds($student_ids){
         // receives array of student ids
         Yii::log("Validating student IDs: " . json_encode($student_ids), CLogger::LEVEL_TRACE, 'application.helpers.studentHelper');

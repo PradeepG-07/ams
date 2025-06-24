@@ -37,19 +37,19 @@
 					<li><a href="<?php echo Yii::app()->createUrl('classes/index'); ?>" class="hover:text-gray-400">Manage Classes</a></li>
 					<li><a href="<?php echo Yii::app()->createUrl('user/create'); ?>" class="hover:text-gray-400">Create User</a></li>
 					<li><a href="<?php echo Yii::app()->createUrl('attendance/manage'); ?>" class="hover:text-gray-400">Manage Attendance</a></li>
+					<li><a href="<?php echo Yii::app()->createUrl('attendance/attendancestats'); ?>" class="hover:text-gray-400">Stats</a></li>
+
 				</ul>
 				<?php elseif (Yii::app()->user->isTeacher()): ?>
 				<!-- Teacher Navigation -->
 				<ul class="flex space-x-4">
 					<li><a href="<?php echo Yii::app()->createUrl('teacher/classes'); ?>" class="hover:text-gray-400">Classes</a></li>
-					<li><a href="<?php echo Yii::app()->createUrl('teacher/attendance'); ?>" class="hover:text-gray-400">Attendance</a></li>
+					<li><a href="<?php echo Yii::app()->createUrl('attendance/manage'); ?>" class="hover:text-gray-400">Attendance</a></li>
 				</ul>
 				<?php elseif (Yii::app()->user->isStudent()): ?>
 				<!-- Student Navigation -->
 				<ul class="flex space-x-4">
-					<li><a href="<?php echo Yii::app()->createUrl('student/dashboard'); ?>" class="hover:text-gray-400">Dashboard</a></li>
-					<li><a href="<?php echo Yii::app()->createUrl('student/daywise'); ?>" class="hover:text-gray-400">Day Wise Attendance</a></li>
-				</ul>
+					</ul>
 				<?php endif; ?>
 			</div>
 			
@@ -62,7 +62,8 @@
 					// Get current user's profile picture if they're a student
 					$profilePicture = null;
 					if (Yii::app()->user->isStudent()) {
-						$studentId = Yii::app()->user->id;
+						$studentId = Yii::app()->user->getState('student_id');
+						$studentId = new MongoDB\BSON\ObjectId($studentId); // Ensure studentId is an ObjectId
 						$student = StudentHelper::loadStudentById($studentId);
 						if ($student && !empty($student->profile_picture)) {
 							$profilePicture = $student->profile_picture;
@@ -84,9 +85,7 @@
 				</button>
 				
 				<div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
-					<?php if (Yii::app()->user->isStudent()): ?>
-						<a href="<?php echo Yii::app()->createUrl('student/profile'); ?>" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Profile</a>
-					<?php endif; ?>
+				
 					<div class="border-t border-gray-100"></div>
 					<a href="<?php echo Yii::app()->createUrl('site/logout'); ?>" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</a>
 				</div>
