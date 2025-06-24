@@ -3,5 +3,6 @@
         'user' => $model,
         'student' => $student,
         'teacher' => $teacher,
+        'classes' => $classes,
     )); ?>
 </div>

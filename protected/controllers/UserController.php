@@ -62,20 +62,23 @@ class UserController extends Controller
             $student = new Student();
             $model = new User();
             $teacher = new Teacher();
+            $classes = ClassesHelper::getAllClasses();
 
             // Validate the model before rendering
             $this->performAjaxValidation($model);
             if (isset($_POST['User']) && (isset($_POST['Student']) || isset($_POST['Teacher']))) {
                 $model->attributes = $_POST['User'];
+                print_r($_POST['User']);
+                exit;
                 if ($model->save()) {
                     if ($model->role == User::ROLE_STUDENT) {
                         if(empty($_POST['Student'])){
                             Yii::log("Student data is empty", CLogger::LEVEL_WARNING, 'application.controllers.UserController');
                             throw new CHttpException(400, 'Student data is required.');
                         }
-                        $student->attributes = $_POST['Student'];
-                        $student->user_id = $model->_id; // Assuming user_id is the foreign key in Student
-                        if ($student->save()) {
+                        $result = StudentHelper::createStudent($_POST['Student'], $model->_id);
+                        $student = $result['model'];
+                        if ($result['success']) {
                             $this->refresh();
                         } else {
                             $model->delete();
@@ -85,9 +88,9 @@ class UserController extends Controller
                             Yii::log("Teacher data is empty", CLogger::LEVEL_WARNING, 'application.controllers.UserController');
                             throw new CHttpException(400, 'Teacher data is required.');
                         }
-                        $teacher->attributes = $_POST['Teacher'];
-                        $teacher->user_id = $model->_id;
-                        if ($teacher->save()) {
+                        $result = TeacherHelper::createTeacher($_POST['Teacher'], $model->_id);
+                        $teacher = $result['model'];
+                        if ($result['success']) {
                             $this->refresh();
                         } else {
                             $model->delete();
@@ -101,6 +104,7 @@ class UserController extends Controller
                 'model' => $model,
                 'student' => $student,
                 'teacher' => $teacher,
+                'classes' => $classes,
             ));
         } catch (Exception $e) {
             Yii::log("Error creating user: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.controllers.UserController');
@@ -182,10 +186,22 @@ class UserController extends Controller
     public function actionUpdate($id){
         try{
             $user = UserHelper::loadUserById(new ObjectId($id));
+            $classes = ClassesHelper::getAllClasses();
             if (!$user) {
                 throw new CHttpException(404, 'User not found.');
             }
             // $ = null;
+            if (isset($_POST['User'])) {
+                $user->attributes = $_POST['User'];
+                if ($user->save()) {
+                    Yii::log("User with ID: $id updated successfully", CLogger::LEVEL_INFO, 'application.controllers.UserController');
+                    Yii::app()->user->setFlash('success', 'User updated successfully.');
+                    $this->redirect(array('view', 'id' => $user->_id));
+                } else {
+                    Yii::log("Failed to update user with ID: $id", CLogger::LEVEL_WARNING, 'application.controllers.UserController');
+                    Yii::app()->user->setFlash('error', 'Failed to update user.');
+                }
+            }
             $student = new Student();
             $teacher = new Teacher();
             if($user->role == User::ROLE_TEACHER){
@@ -206,7 +222,7 @@ class UserController extends Controller
                 'user' => $user,
                 'student' => $student,
                 'teacher' => $teacher,
-                
+                'classes' => $classes,
             ));
             return;
         } catch (Exception $e) {

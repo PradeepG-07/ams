@@ -168,7 +168,7 @@ class ClassesHelper{
             if($classes){
                 $result = [];
                 foreach($classes as $class){
-                    $result[(string)$class->_id] = $class->name;
+                    $result[(string)$class->_id] = $class->class_name;
                 }
                 return $result;            
             } else {
