@@ -183,9 +183,28 @@ class StudentHelper
     {
         Yii::log("Fetching students for class ID: $classId", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
         try {
-            $criteria = new EMongoCriteria();
-            $criteria->addCond('class', '==', $classId);
-            $students = Student::model()->findAll($criteria);
+            $ret = Student::model()->startAggregation()
+            ->addStage([
+                '$lookup' => [
+                    'from' => 'users',
+                    'localField' => 'user_id',
+                    'foreignField' => '_id',
+                    'as' => 'user',
+                    'pipeline' => [
+                        ['$project' => [
+                            'name' => 1
+                        ]]
+                    ]
+                ]
+            ])
+            ->addStage([
+                '$unwind' => [
+                    'path' => '$user',
+                    'preserveNullAndEmptyArrays' => true
+                ]
+            ])
+            ->aggregate();
+            $students = $ret['result'] ?? [];
             if ($students) {
                 Yii::log("Students fetched successfully for class ID: $classId", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
                 return $students;

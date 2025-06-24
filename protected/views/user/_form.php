@@ -175,55 +175,53 @@
             endforeach; ?>
         </div>
         <button type="button" id="add-hobby" class="mt-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">Add Another Hobby</button>
+    </div>
 
+    <!-- Teacher Fields Section -->
+    <div id="teacher-fields" class="bg-yellow-50 p-4 rounded-lg" style="display: none;">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">Teacher Information</h3>
 
-        <!-- Teacher Fields Section -->
-        <div id="teacher-fields" class="bg-yellow-50 p-4 rounded-lg" style="display: none;">
-            <h3 class="text-lg font-semibold text-gray-700 mb-4">Teacher Information</h3>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <?php echo $form->labelEx($teacher, 'emp_id', array('class' => 'block text-sm font-medium text-gray-700 mb-1')); ?>
-                    <?php echo $form->textField($teacher, 'emp_id', array(
-                        'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500',
-                        'placeholder' => 'Enter employee ID'
-                    )); ?>
-                    <?php echo $form->error($teacher, 'emp_id', array('class' => 'text-red-500 text-sm mt-1')); ?>
-                </div>
-
-                <div>
-                    <?php echo $form->labelEx($teacher, 'salary', array('class' => 'block text-sm font-medium text-gray-700 mb-1')); ?>
-                    <?php echo $form->numberField($teacher, 'salary', array(
-                        'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500',
-                        'placeholder' => 'Enter salary',
-                        'min' => '0'
-                    )); ?>
-                    <?php echo $form->error($teacher, 'salary', array('class' => 'text-red-500 text-sm mt-1')); ?>
-                </div>
-                <div>
-                    <?php echo $form->labelEx($teacher, 'classes', array('class' => 'block text-sm font-medium text-gray-700 mb-1')); ?>
-                    <?php echo $form->listBox($teacher, 'classes', $classes, array(
-                        'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500',
-                        'multiple' => 'multiple',
-                        'size' => 5 // Optional: shows 5 options visible without scrolling
-                    )); ?>
-                    <?php echo $form->error($teacher, 'classes', array('class' => 'text-red-500 text-sm mt-1')); ?>
-                </div>
-
-
-                <div class="md:col-span-2">
-                    <?php echo $form->labelEx($teacher, 'designation', array('class' => 'block text-sm font-medium text-gray-700 mb-1')); ?>
-                    <?php echo $form->textField($teacher, 'designation', array(
-                        'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500',
-                        'placeholder' => 'Enter designation'
-                    )); ?>
-                    <?php echo $form->error($teacher, 'designation', array('class' => 'text-red-500 text-sm mt-1')); ?>
-                </div>
-
-
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <?php echo $form->labelEx($teacher, 'emp_id', array('class' => 'block text-sm font-medium text-gray-700 mb-1')); ?>
+                <?php echo $form->textField($teacher, 'emp_id', array(
+                    'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500',
+                    'placeholder' => 'Enter employee ID'
+                )); ?>
+                <?php echo $form->error($teacher, 'emp_id', array('class' => 'text-red-500 text-sm mt-1')); ?>
             </div>
-        </div>
 
+            <div>
+                <?php echo $form->labelEx($teacher, 'salary', array('class' => 'block text-sm font-medium text-gray-700 mb-1')); ?>
+                <?php echo $form->numberField($teacher, 'salary', array(
+                    'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500',
+                    'placeholder' => 'Enter salary',
+                    'min' => '0'
+                )); ?>
+                <?php echo $form->error($teacher, 'salary', array('class' => 'text-red-500 text-sm mt-1')); ?>
+            </div>
+            <div>
+                <?php echo $form->labelEx($teacher, 'classes', array('class' => 'block text-sm font-medium text-gray-700 mb-1')); ?>
+                <?php echo $form->listBox($teacher, 'classes', $classes, array(
+                    'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500',
+                    'multiple' => 'multiple',
+                    'size' => 5 // Optional: shows 5 options visible without scrolling
+                )); ?>
+                <?php echo $form->error($teacher, 'classes', array('class' => 'text-red-500 text-sm mt-1')); ?>
+            </div>
+
+
+            <div class="md:col-span-2">
+                <?php echo $form->labelEx($teacher, 'designation', array('class' => 'block text-sm font-medium text-gray-700 mb-1')); ?>
+                <?php echo $form->textField($teacher, 'designation', array(
+                    'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500',
+                    'placeholder' => 'Enter designation'
+                )); ?>
+                <?php echo $form->error($teacher, 'designation', array('class' => 'text-red-500 text-sm mt-1')); ?>
+            </div>
+
+
+        </div>
     </div>
 
     <!-- Submit Button -->
@@ -246,7 +244,7 @@
             // Handle user type selection
             userTypeSelect.addEventListener('change', function() {
                 const selectedType = this.value;
-
+                // console.log('Selected user type:', selectedType);
                 studentFields.style.display = 'none';
                 teacherFields.style.display = 'none';
 

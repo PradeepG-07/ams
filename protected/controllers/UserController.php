@@ -68,8 +68,8 @@ class UserController extends Controller
             $this->performAjaxValidation($model);
             if (isset($_POST['User']) && (isset($_POST['Student']) || isset($_POST['Teacher']))) {
                 $model->attributes = $_POST['User'];
-                print_r($_POST['User']);
-                exit;
+                // print_r($_POST);
+                // exit;
                 if ($model->save()) {
                     if ($model->role == User::ROLE_STUDENT) {
                         if(empty($_POST['Student'])){
