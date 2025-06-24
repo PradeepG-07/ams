@@ -8,6 +8,7 @@ class Student extends EMongoDocument
     public $class;
     public $hobbies = [];
     public $profile_picture;
+    public $profile_picture_key;
 
  
     public function getCollectionName()
@@ -19,7 +20,7 @@ class Student extends EMongoDocument
     {
         return array(
             // ['roll_no,user_id,cgpa,class,hobbies', 'required'],
-            ['roll_no,user_id,cgpa,class,hobbies,profile_picture', 'safe'],
+            ['roll_no,user_id,cgpa,class,hobbies,profile_picture,profile_picture_key', 'safe'],
             ['roll_no', 'length', 'max' => 20],
             ['cgpa', 'numerical'],
             ['profile_picture', 'file', 'types' => 'jpg, jpeg, png', 'allowEmpty' => true],
@@ -54,6 +55,19 @@ class Student extends EMongoDocument
                 'arrayDocClassName'=>'Hobby'    
             ),
         );
+    }
+
+    /**
+     * Get the full URL for the resume
+     * @return string URL to the resume file
+     */
+    public function getProfileUrl()
+    {
+        if (empty($this->profile_picture_key)) {
+            return null;
+        }
+
+        return S3Helper::generateGETObjectUrl($this->profile_picture_key);
     }
 
 

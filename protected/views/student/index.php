@@ -106,8 +106,8 @@ function renderTable(students) {
         row.className = 'hover:bg-gray-50';
         
         const hobbies = student.hobbies ? student.hobbies.map(h => h.name).join(', ') : 'N/A';
-        const profilePicture = student.profile_picture ? 
-            `<img src="/uploads/profiles/${student.profile_picture}" alt="Profile" class="w-10 h-10 rounded-full object-cover">` :
+        const profilePicture = student.profile_picture_url ? 
+            `<img src="${student.profile_picture_url}" alt="Profile" class="w-10 h-10 rounded-full object-cover">` :
             `<div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 text-sm font-medium">${student.user.name.charAt(0)}</div>`;
         
         row.innerHTML = `
@@ -125,7 +125,7 @@ function renderTable(students) {
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                    ${student.class}
+                    ${student.class_info?.class_name}
                 </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

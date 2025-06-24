@@ -14,8 +14,8 @@ class S3Helper
                 'region'      => $_ENV['S3_REGION'],
                 'version'     => '2006-03-01',
                 'credentials' => [
-                    'key' => $_ENV['AWS_ACCESS_KEY_ID'],
-                    'secret' => $_ENV['AWS_SECRET_ACCESS_KEY']
+                    'key' => $_ENV['AWS_ACCESS_KEY'],
+                    'secret' => $_ENV['AWS_SECRET']
                 ]
             ]);
         }

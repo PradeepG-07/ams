@@ -64,12 +64,14 @@ class UserController extends Controller
             $teacher = new Teacher();
             $classes = ClassesHelper::getAllClasses();
 
+            // if(isset($_POST['User'])){
+            //     print_r($_POST);
+            //     exit;
+            // }
             // Validate the model before rendering
             $this->performAjaxValidation($model);
             if (isset($_POST['User']) && (isset($_POST['Student']) || isset($_POST['Teacher']))) {
                 $model->attributes = $_POST['User'];
-                // print_r($_POST);
-                // exit;
                 if ($model->save()) {
                     if ($model->role == User::ROLE_STUDENT) {
                         if(empty($_POST['Student'])){
@@ -79,7 +81,7 @@ class UserController extends Controller
                         $result = StudentHelper::createStudent($_POST['Student'], $model->_id);
                         $student = $result['model'];
                         if ($result['success']) {
-                            $this->refresh();
+                            $this->redirect(Yii::app()->createUrl('student/index'));
                         } else {
                             $model->delete();
                         }
@@ -91,7 +93,8 @@ class UserController extends Controller
                         $result = TeacherHelper::createTeacher($_POST['Teacher'], $model->_id);
                         $teacher = $result['model'];
                         if ($result['success']) {
-                            $this->refresh();
+                            $this->redirect(Yii::app()->createUrl('teacher/index'));
+
                         } else {
                             $model->delete();
                         }
@@ -185,39 +188,68 @@ class UserController extends Controller
 
     public function actionUpdate($id){
         try{
-            $user = UserHelper::loadUserById(new ObjectId($id));
+            $id = new ObjectId($id);
+            $user = UserHelper::loadUserById($id);
+            
             $classes = ClassesHelper::getAllClasses();
-            if (!$user) {
-                throw new CHttpException(404, 'User not found.');
-            }
-            // $ = null;
-            if (isset($_POST['User'])) {
-                $user->attributes = $_POST['User'];
-                if ($user->save()) {
-                    Yii::log("User with ID: $id updated successfully", CLogger::LEVEL_INFO, 'application.controllers.UserController');
-                    Yii::app()->user->setFlash('success', 'User updated successfully.');
-                    $this->redirect(array('view', 'id' => $user->_id));
-                } else {
-                    Yii::log("Failed to update user with ID: $id", CLogger::LEVEL_WARNING, 'application.controllers.UserController');
-                    Yii::app()->user->setFlash('error', 'Failed to update user.');
-                }
-            }
+
             $student = new Student();
             $teacher = new Teacher();
+
+             
             if($user->role == User::ROLE_TEACHER){
-                $teacher = TeacherHelper::loadTeacherByUserId(new ObjectId($id));
+                $teacher = TeacherHelper::loadTeacherByUserId($id);
                 if (!$teacher) {
                     throw new CHttpException(404, 'Teacher not found.');
                 }
 
             } elseif($user->role == User::ROLE_STUDENT){
-                $student = StudentHelper::loadStudentByUserId(new ObjectId($id));
+                $student = StudentHelper::loadStudentByUserId($id);
                 if (!$student) {
                     throw new CHttpException(404, 'Student not found.');
                 }
             } else {
                 throw new CHttpException(400, 'Invalid role specified.');
             }
+            // $ = null;
+            if (isset($_POST['User'])) {
+                $user->attributes = $_POST['User'];
+                if ($user->save()) {
+                    if ($user->role == User::ROLE_STUDENT) {
+                        if(empty($_POST['Student'])){
+                            Yii::log("Student data is empty", CLogger::LEVEL_WARNING, 'application.controllers.UserController');
+                            throw new CHttpException(400, 'Student data is required.');
+                        }
+                        $result = StudentHelper::updateStudent($student->_id,$_POST['Student']);
+                        $student = $result['model'];
+                        if ($result['success']) {
+                            $this->redirect(Yii::app()->createUrl('student/index'));
+                        } else {
+                            $user->delete();
+                        }
+                    } elseif ($user->role == User::ROLE_TEACHER) {
+                        if(empty($_POST['Teacher'])){
+                            Yii::log("Teacher data is empty", CLogger::LEVEL_WARNING, 'application.controllers.UserController');
+                            throw new CHttpException(400, 'Teacher data is required.');
+                        }
+                        $result = TeacherHelper::updateTeacher($teacher->_id,$_POST['Teacher']); // Updated from $model->_id to $user->_id
+                        $teacher = $result['model'];
+                        if ($result['success']) {
+                            $this->redirect(Yii::app()->createUrl('teacher/index'));
+
+                        } else {
+                            $user->delete(); // Updated from $model->delete() to $user->delete()
+                        }
+                    } else {
+                        throw new CHttpException(400, 'Invalid role specified.');
+                    }
+                } else {
+                    Yii::log("Failed to update user with ID: " . json_encode($user->getErrors()), CLogger::LEVEL_WARNING, 'application.controllers.UserController');
+                    Yii::log("Failed to update user with ID: $id", CLogger::LEVEL_WARNING, 'application.controllers.UserController');
+                    Yii::app()->user->setFlash('error', 'Failed to update user.');
+                }
+            }
+           
             $this->render('_form', array(
                 'user' => $user,
                 'student' => $student,

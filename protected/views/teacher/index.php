@@ -105,7 +105,7 @@ function renderTable(teachers) {
         const row = document.createElement('tr');
         row.className = 'hover:bg-gray-50';
         
-        const classes = teacher.classes ? teacher.classes.join(', ') : 'N/A';
+        const classes = teacher.classes ? teacher.classes : [];
         const profilePicture = teacher.profile_picture ? 
             `<img src="/uploads/profiles/${teacher.profile_picture}" alt="Profile" class="w-10 h-10 rounded-full object-cover">` :
             `<div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 text-sm font-medium">${teacher.user.name.charAt(0)}</div>`;
@@ -134,7 +134,7 @@ function renderTable(teachers) {
                 </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                ${classes}
+                ${classes.length > 0 ? classes.map(cls => cls.class_name).join(', ') : 'N/A'}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <div class="flex space-x-2">

@@ -1,63 +1,63 @@
 <?php
+
 use MongoDB\BSON\ObjectId;
- 
+
 class StudentHelper
 {
- 
+
     public static function loadStudentById($id)
     {
         try {
             Yii::log("Loading student model with id: $id", CLogger::LEVEL_TRACE, 'application.helpers.studentHelper');
- 
-                $model = Student::model()->findByPk($id);
-                if ($model === null) {
-                    Yii::log("Student model not found with id: $id", CLogger::LEVEL_WARNING, 'application.helpers.studentHelper');
-                    throw new CHttpException(404, 'The requested student does not exist.');
-                }
-                return $model;
-            } catch (Exception $e) {
-                if($e instanceof CHttpException) {
-                    Yii::log("HTTP Exception in loadStudentById: " . $e->getMessage(), CLogger::LEVEL_WARNING, 'application.helpers.studentHelper');
-                    throw $e; // Re-throw the HTTP exception to be handled by the framework
-                }
-                Yii::log("Error in loadStudentById: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+
+            $model = Student::model()->findByPk($id);
+            if ($model === null) {
+                Yii::log("Student model not found with id: $id", CLogger::LEVEL_WARNING, 'application.helpers.studentHelper');
+                throw new CHttpException(404, 'The requested student does not exist.');
+            }
+            return $model;
+        } catch (Exception $e) {
+            if ($e instanceof CHttpException) {
+                Yii::log("HTTP Exception in loadStudentById: " . $e->getMessage(), CLogger::LEVEL_WARNING, 'application.helpers.studentHelper');
+                throw $e; // Re-throw the HTTP exception to be handled by the framework
+            }
+            Yii::log("Error in loadStudentById: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
         }
     }
-    
- 
+
+
     public static function loadStudentByUserId($id)
     {
         try {
             Yii::log("Loading student model with user_id: $id", CLogger::LEVEL_TRACE, 'application.helpers.studentHelper');
- 
-                $criteria = new EMongoCriteria();
-                $criteria->addCond('user_id', '==', $id);
-                $model = Student::model()->find($criteria);
-                if ($model === null) {
-                    Yii::log("Student model not found with user_id: $id", CLogger::LEVEL_WARNING, 'application.helpers.studentHelper');
-                    throw new CHttpException(404, 'The requested student does not exist.');
-                }
-                return $model;
-            } catch (Exception $e) {
-                if($e instanceof CHttpException) {
-                    Yii::log("HTTP Exception in loadStudentByUserId: " . $e->getMessage(), CLogger::LEVEL_WARNING, 'application.helpers.studentHelper');
-                    throw $e; // Re-throw the HTTP exception to be handled by the framework
-                }
-                Yii::log("Error in loadStudentByUserId: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+
+            $criteria = new EMongoCriteria();
+            $criteria->addCond('user_id', '==', $id);
+            $model = Student::model()->find($criteria);
+            if ($model === null) {
+                Yii::log("Student model not found with user_id: $id", CLogger::LEVEL_WARNING, 'application.helpers.studentHelper');
+                throw new CHttpException(404, 'The requested student does not exist.');
             }
+            return $model;
+        } catch (Exception $e) {
+            if ($e instanceof CHttpException) {
+                Yii::log("HTTP Exception in loadStudentByUserId: " . $e->getMessage(), CLogger::LEVEL_WARNING, 'application.helpers.studentHelper');
+                throw $e; // Re-throw the HTTP exception to be handled by the framework
+            }
+            Yii::log("Error in loadStudentByUserId: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+        }
     }
 
     public static function createStudent($studentData = null, $userId = null)
     {
 
         Yii::log("Creating new student", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
-        
+
         $model = new Student;
         $model->user_id = $userId;
         return self::_update(null, $model, $studentData);
-           
     }
-    
+
     public static function updateStudent($id, $studentData = null)
     {
         Yii::log("Updating a student", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
@@ -66,12 +66,49 @@ class StudentHelper
     }
 
 
-    private static function _update($id=null, $model, $studentData = null){
+    private static function _update($id = null, $model, $studentData = null)
+    {
         try {
-            Yii::log($id==null ? "Creating new student" : "Updating student with ID: $id", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+            Yii::log($id == null ? "Creating new student" : "Updating student with ID: $id", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+            $s3Key = $model->profile_picture_key;
             $model->attributes = $studentData;
+            $model->class = new ObjectId($model->class); // Ensure class is an ObjectId
 
-            // handle validating embedded documents in before save
+            $uploadedFile = CUploadedFile::getInstance($model, 'profile_picture');
+            if ($uploadedFile) {
+                Yii::log("Processing profile picture upload", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+                // Validate the file type
+                $allowedExtensions = array('jpg', 'jpeg', 'png');
+                if (!in_array($uploadedFile->getExtensionName(), $allowedExtensions)) {
+                    Yii::log("Invalid file type for profile picture upload: " . $uploadedFile->getExtensionName(), CLogger::LEVEL_WARNING, 'application.helpers.studentHelper');
+                    Yii::app()->user->setFlash('error', 'Invalid file type. Only JPG, JPEG, and PNG files are allowed.');
+                    return array(
+                        'success' => false,
+                        'model' => $model,
+                        'message' => 'Invalid file type. Only JPG, JPEG, and PNG files are allowed.'
+                    );
+                }
+                // Delete old profile picture file from S3 if it exists
+                if (isset($s3Key) && !empty($s3Key)) {
+                    Yii::log("Deleting old profile picture file from S3: $s3Key", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+                    S3Helper::deleteObject($s3Key, $_ENV['S3_BUCKET_NAME']);
+                }
+                $s3Key = 'profile_pictures/profile_picture_' . $model->_id . '.' . $uploadedFile->getExtensionName();
+                $stream = file_get_contents($uploadedFile->tempName);
+                $result = S3Helper::uploadObject($s3Key, $stream, $_ENV['S3_BUCKET_NAME']);
+                if ($result) {
+                    // Update the model with the S3 path
+                    $model->profile_picture_key = $s3Key;
+                } else {
+                    Yii::log("Failed to upload profile picture file to S3", CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+                    Yii::app()->user->setFlash('error', 'Failed to upload profile picture file.');
+                    return array(
+                        'success' => false,
+                        'model' => $model,
+                        'message' => 'Failed to upload profile picture file.'
+                    );
+                }
+            }
             if (!$model->validate() || !$model->save()) {
                 Yii::log("Failed to save student: " . json_encode($model->getErrors()), CLogger::LEVEL_WARNING, 'application.helpers.studentHelper');
                 return array(
@@ -80,27 +117,38 @@ class StudentHelper
                     'message' => 'Failed to save student: ' . json_encode($model->getErrors())
                 );
             }
-            
+
+            // handle validating embedded documents in before save
+            // if (!$model->validate() || !$model->save()) {
+            //     Yii::log("Failed to save student: " . json_encode($model->getErrors()), CLogger::LEVEL_WARNING, 'application.helpers.studentHelper');
+            //     return array(
+            //         'success' => false,
+            //         'model' => $model,
+            //         'message' => 'Failed to save student: ' . json_encode($model->getErrors())
+            //     );
+            // }
+
             Yii::log("Student " . ($id == null ? "created" : "updated") . " successfully with ID: {$model->_id}", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
-            
+
             return array(
                 'success' => true,
                 'model' => $model,
                 'message' => 'Student ' . ($id == null ? "created" : "updated") . ' successfully!'
             );
         } catch (Exception $e) {
-            Yii::log("Error in ". ($id == null ? "create" : "update") . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.userHelper');
+            Yii::log("Error in " . ($id == null ? "create" : "update") . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.userHelper');
             return array(
                 'success' => false,
                 'model' => $model,
-                'message' => 'An error occurred: ' . $e->getMessage() 
+                'message' => 'An error occurred: ' . $e->getMessage()
             );
         }
     }
 
-    public static function listStudents($page = 1){
+    public static function listStudents($page = 1)
+    {
         Yii::log("Listing students for page: $page", CLogger::LEVEL_TRACE, 'application.helpers.studentHelper');
-        
+
         $aggregationResult = Student::model()->startAggregation()
             ->addStage([
                 '$lookup' => [
@@ -111,8 +159,22 @@ class StudentHelper
                 ]
             ])
             ->addStage([
+                '$lookup' => [
+                    'from' => 'classes',
+                    'localField' => 'class',
+                    'foreignField' => '_id',
+                    'as' => 'class_info'
+                ]
+            ])
+            ->addStage([
                 '$unwind' => [
                     'path' => '$user',
+                    'preserveNullAndEmptyArrays' => true
+                ]
+            ])
+            ->addStage([
+                '$unwind' => [
+                    'path' => '$class_info',
                     'preserveNullAndEmptyArrays' => true
                 ]
             ])
@@ -120,13 +182,26 @@ class StudentHelper
             ->skip(($page - 1) * 5)
             ->limit(5)
             ->aggregate();
-    
+
         $students = $aggregationResult['result'] ?? [];
-        
-        return $students;
+        $studentsWithUrls = array_map(function($student) {
+            // $student is an array from aggregation result
+    
+            // Convert to Student model instance if needed OR just manually add URL:
+            $profileUrl = null;
+            if (!empty($student['profile_picture_key'])) {
+                $profileUrl = S3Helper::generateGETObjectUrl($student['profile_picture_key']);
+            }
+    
+            $student['profile_picture_url'] = $profileUrl;
+    
+            return $student;
+        }, $students);
+
+        return $studentsWithUrls;
     }
- 
-   
+
+
     // public static function findAll($criteria = null)
     // {
     //     Yii::log("Finding all jobs with criteria: " . json_encode($criteria), CLogger::LEVEL_TRACE, 'application.helpers.studentHelper');
@@ -135,7 +210,7 @@ class StudentHelper
     //     }
     //     return Job::model()->findAll($criteria);
     // }
- 
+
     public static function count($conditions = array())
     {
         Yii::log("Counting jobs with conditions: " . json_encode($conditions), CLogger::LEVEL_TRACE, 'application.helpers.studentHelper');
@@ -143,7 +218,7 @@ class StudentHelper
             Yii::log("Invalid conditions format, expected array.", CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
             throw new InvalidArgumentException('Conditions must be an array.');
         }
-        $criteria = new EMongoCriteria(); 
+        $criteria = new EMongoCriteria();
         if (!empty($conditions)) {
             foreach ($conditions as $condition) {
                 $criteria->addCond($condition[0], $condition[1], $condition[2]);
@@ -184,26 +259,31 @@ class StudentHelper
         Yii::log("Fetching students for class ID: $classId", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
         try {
             $ret = Student::model()->startAggregation()
-            ->addStage([
-                '$lookup' => [
-                    'from' => 'users',
-                    'localField' => 'user_id',
-                    'foreignField' => '_id',
-                    'as' => 'user',
-                    'pipeline' => [
-                        ['$project' => [
-                            'name' => 1
-                        ]]
+                ->addStage([
+                    '$match' => [
+                        'class' =>$classId // Ensure class is an ObjectId
                     ]
-                ]
-            ])
-            ->addStage([
-                '$unwind' => [
-                    'path' => '$user',
-                    'preserveNullAndEmptyArrays' => true
-                ]
-            ])
-            ->aggregate();
+                ])
+                ->addStage([
+                    '$lookup' => [
+                        'from' => 'users',
+                        'localField' => 'user_id',
+                        'foreignField' => '_id',
+                        'as' => 'user',
+                        'pipeline' => [
+                            ['$project' => [
+                                'name' => 1
+                            ]]
+                        ]
+                    ]
+                ])
+                ->addStage([
+                    '$unwind' => [
+                        'path' => '$user',
+                        'preserveNullAndEmptyArrays' => true
+                    ]
+                ])
+                ->aggregate();
             $students = $ret['result'] ?? [];
             if ($students) {
                 Yii::log("Students fetched successfully for class ID: $classId", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
@@ -238,4 +318,3 @@ class StudentHelper
         return true;
     }
 }
- 

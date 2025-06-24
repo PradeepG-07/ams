@@ -12,10 +12,10 @@
     <?php $form = $this->beginWidget('CActiveForm', array(
         'id' => 'user-form',
         'enableAjaxValidation' => false,
-        'action' => Yii::app()->createUrl($user->isNewRecord ? 'user/create' : 'user/update', array('id' => $user->_id)),
+        'action' => $user->isNewRecord ? Yii::app()->createUrl('user/create') : Yii::app()->createUrl('user/update', array('id' => $user->_id)),
         'enableClientValidation' => true,
         'clientOptions' => array(
-            'validateOnSubmit' => true,
+            'validateOnSubmit' => false,
             'validateOnChange' => false,
         ),
         'htmlOptions' => array(
@@ -23,6 +23,15 @@
             'enctype' => 'multipart/form-data'
         ),
     )); ?>
+
+    <div>
+        <?php echo $form->errorSummary($user, null, null, array('class' => 'text-red-500 mb-4')); ?>
+        <?php if ($user->isNewRecord): ?>
+            <p class="text-sm text-gray-600 mb-4">Please fill in the details below to create a new user account.</p>
+        <?php else: ?>
+            <p class="text-sm text-gray-600 mb-4">You are editing the   user account for <strong><?php echo CHtml::encode($user->name); ?></strong>.</p>
+        <?php endif; ?> 
+    </div>
 
     <!-- User Fields Section -->
     <div class="bg-gray-50 p-4 rounded-lg">
@@ -99,7 +108,7 @@
         <h3 class="text-lg font-semibold text-gray-700 mb-4">User Type</h3>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Select User Type</label>
-            <select id="user-type-select" name=User[role] <?php if (isset($user) && $user->role) echo 'value="' . $user->role . '"'; ?> class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+            <select id="user-type-select" name="User[role]" <?php if (isset($user) && $user->role) echo 'value="' . $user->role . '"'; ?> class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                 <option value="">Select Type</option>
                 <option value="student" <?php if (isset($user) && $user->role == User::ROLE_STUDENT) echo 'selected'; ?>>Student</option>
                 <option value="teacher" <?php if (isset($user) && $user->role == User::ROLE_TEACHER) echo 'selected'; ?>>Teacher</option>
@@ -133,14 +142,46 @@
                 <?php echo $form->error($student, 'cgpa', array('class' => 'text-red-500 text-sm mt-1')); ?>
             </div>
 
+            <?php
+            // Convert MongoDB ObjectIds to strings for use in option values
+            $options = '';
+            foreach ($classes as $id => $classname) {
+                $classId = $id;  // or $class->_id if it's an object
+                $className = $classname;       // adjust to actual class name field
+
+                // Check if selected (for edit forms or old input)
+                $selected = '';
+                if (is_array($student->class)) {
+                    if (in_array($classId, $student->class)) {
+                        $selected = 'selected';
+                    }
+                } elseif ($student->class == $classId) {
+                    $selected = 'selected';
+                }
+
+                $options .= "<option value=\"{$classId}\" {$selected}>{$className}</option>";
+            }
+
+            // Allow multiple selection based on role
+            $isMultiple = (Yii::app()->user->isTeacher()); // example
+            $multipleAttr = $isMultiple ? 'multiple' : '';
+            $nameAttr = $isMultiple ? 'Student[class][]' : 'Student[class]';
+            ?>
+
             <div>
-                <?php echo $form->labelEx($student, 'class', array('class' => 'block text-sm font-medium text-gray-700 mb-1')); ?>
-                <?php echo $form->dropDownList($student, 'class', $classes, array(
-                    'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500',
-                    'prompt' => 'Select Class'
-                )); ?>
-                <?php echo $form->error($student, 'class', array('class' => 'text-red-500 text-sm mt-1')); ?>
+                <label for="Student_class" class="block text-sm font-medium text-gray-700 mb-1">
+                    Class
+                </label>
+                <select name="<?php echo $nameAttr; ?>" id="Student_class"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+                    <?php echo $multipleAttr; ?>>
+                    <option value="">Select Class</option>
+                    <?php echo $options; ?>
+                </select>
+
+                <?php echo $form->error($student, 'class', ['class' => 'text-red-500 text-sm mt-1']); ?>
             </div>
+
 
             <div>
                 <?php echo $form->labelEx($student, 'profile_picture', array('class' => 'block text-sm font-medium text-gray-700 mb-1')); ?>
@@ -200,14 +241,37 @@
                 )); ?>
                 <?php echo $form->error($teacher, 'salary', array('class' => 'text-red-500 text-sm mt-1')); ?>
             </div>
+           
+            <select name="Teacher[classes][]" id="Teacher_classes"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500" multiple>
+                <!-- <option value="">Select Classes</option> -->
+                 <?php
+                    $options = '';
+                    foreach ($classes as $id => $classname) {
+                        $classId = $id;  // or $class->_id if it's an object
+                        $className = $classname;       // adjust to actual class name field
+        
+                        // Check if selected (for edit forms or old input)
+                        $selected = '';
+                        if (is_array($teacher->classes)) {
+                            if (in_array($classId, $teacher->classes)) {
+                                $selected = 'selected';
+                            }
+                        } 
+                        $options .= "<option value=\"{$classId}\" {$selected}>{$className}</option>";
+                    }
+                 ?>
+                <?php echo $options; ?>
+            </select>
+
             <div>
-                <?php echo $form->labelEx($teacher, 'classes', array('class' => 'block text-sm font-medium text-gray-700 mb-1')); ?>
-                <?php echo $form->listBox($teacher, 'classes', $classes, array(
-                    'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500',
-                    'multiple' => 'multiple',
-                    'size' => 5 // Optional: shows 5 options visible without scrolling
-                )); ?>
-                <?php echo $form->error($teacher, 'classes', array('class' => 'text-red-500 text-sm mt-1')); ?>
+                <?php //echo $form->labelEx($teacher, 'classes', array('class' => 'block text-sm font-medium text-gray-700 mb-1')); ?>
+                <?php //echo $form->listBox($teacher, 'classes', $classes, array(
+                //     'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500',
+                //     'multiple' => 'multiple',
+                //     'size' => 5 // Optional: shows 5 options visible without scrolling
+                // )); ?>
+                <?php //echo $form->error($teacher, 'classes', array('class' => 'text-red-500 text-sm mt-1')); ?>
             </div>
 
 
