@@ -124,8 +124,8 @@ function renderTable(students) {
                 ${student.user.email}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                    ${student.class_info?.class_name}
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${!student.class_info?.class_name ? "bg-red-100 text-red-800" : "bg-blue-100 text-blue-800"}">
+                    ${student.class_info?.class_name ? student.class_info?.class_name: "No Class"}
                 </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

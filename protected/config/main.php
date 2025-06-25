@@ -94,9 +94,9 @@ return array(
         // $password = $_ENV['mongodb_password'],
         'mongodb' => array(
             'class' => 'EMongoDB',
-            // 'connectionString' => "mongodb://mongo",
+            'connectionString' => "mongodb://mongo",
             // 'connectionString' => "mongodb+srv://suppa:1234@myatlasclusteredu.csyez.mongodb.net/?retryWrites=true&w=majority&appName=myAtlasClusterEDU",
-            'connectionString' => "mongodb+srv://lolkeor:keori@cluster0.97xhu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
+            // 'connectionString' => "mongodb+srv://lolkeor:keori@cluster0.97xhu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
             'dbName' => 'ams',
             'fsyncFlag' => true,
             'safeFlag' => true,

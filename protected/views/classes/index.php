@@ -12,9 +12,11 @@ $this->breadcrumbs = array(
     <div class="bg-white shadow-lg rounded-lg overflow-hidden">
         <div class="px-6 py-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
             <h2 class="text-2xl font-bold text-gray-800">Classes</h2>
-            <a href="<?php echo Yii::app()->createUrl('classes/create'); ?>" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                Add New Class
-            </a>
+            <?php if(Yii::app()->user->isAdmin()): ?>
+                <a href="<?php echo Yii::app()->createUrl('classes/create'); ?>" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    Add New Class
+                </a>
+            <?php endif; ?>
         </div>
         
         <!-- Loading Spinner -->
