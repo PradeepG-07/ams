@@ -80,14 +80,16 @@ class ClassesController extends Controller
                 ));
             }
             elseif(Yii::app()->user->isTeacher()){
-                $classes = ClassesHelper::getTeacherClasses(Yii::app()->user->getState("teacher_id"));
+                $teacherId = Yii::app()->user->getState("teacher_id");
+                $teacherId = new ObjectId($teacherId);
+                $classes = TeacherHelper::listClasses($teacherId, $page);
+                $total = count(TeacherHelper::loadTeacherById($teacherId)->classes);
                 // print_r($classes);
                 // exit;
-                $total = count($classes);
-                $data = [1, 2, 3, 4, 5];
-                $data = array_map(fn($x) => $x * $x, $data);
-                print_r($data);
-                exit; 
+                // $data = [1, 2, 3, 4, 5];
+                // $data = array_map(fn($x) => $x * $x, $data);
+                // print_r($data);
+                // exit; 
                 $this->sendAjaxResponseIfAjax($classes,$total);
                 // echo CJSON::encode([
                 //     'success' => true,

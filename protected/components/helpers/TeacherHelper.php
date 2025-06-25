@@ -229,6 +229,45 @@ class TeacherHelper
         }
     }
 
+    public static function listClasses($teacherId, $page = 1)
+    {
+        Yii::log("Listing classes for teacher ID: $teacherId on page: $page", CLogger::LEVEL_TRACE, 'application.helpers.teacherHelper');
+        $allClasses = self::loadTeacherById($teacherId)->classes;
+        if (empty($allClasses)) {
+            Yii::log("No classes found for teacher ID: $teacherId", CLogger::LEVEL_INFO, 'application.helpers.teacherHelper');
+            return [];
+        }
+        $classes = array_slice($allClasses, ($page - 1) * 5, 5);
+        $populatedClasses = Classes::model()->startAggregation()
+            ->addStage([
+                '$match' => [
+                    '_id' => ['$in' => $classes]
+                ]
+            ])
+            ->addStage([
+                '$lookup' => [
+                    'from' => 'users',
+                    'localField' => 'user_id',
+                    'foreignField' => '_id',
+                    'as' => 'user'
+                ]
+            ])
+            ->addStage([
+                '$unwind' => [
+                    'path' => '$user',
+                    'preserveNullAndEmptyArrays' => true
+                ]
+            ])
+            ->aggregate();
+        if (empty($populatedClasses['result'])) {
+            Yii::log("No populated classes found for teacher ID: $teacherId", CLogger::LEVEL_INFO, 'application.helpers.teacherHelper');
+            return [];
+
+        }
+        Yii::log("Populated classes found for teacher ID: $teacherId", CLogger::LEVEL_INFO, 'application.helpers.teacherHelper');
+        return $populatedClasses['result'];
+    }
+
     // public static function findAll($criteria = null)
     // {
     //     Yii::log("Finding all jobs with criteria: " . json_encode($criteria), CLogger::LEVEL_TRACE, 'application.helpers.jobHelper');
