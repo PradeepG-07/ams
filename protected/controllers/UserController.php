@@ -181,6 +181,7 @@ class UserController extends Controller
             $id = new ObjectId($id);
             $user = UserHelper::loadUserById($id);
             
+            
             $classes = ClassesHelper::getAllClasses();
 
             $student = new Student();

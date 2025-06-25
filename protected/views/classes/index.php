@@ -28,7 +28,9 @@ $this->breadcrumbs = array(
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class Name</th>
+                        <?php if(Yii::app()->user->isAdmin()): ?>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        <?php endif; ?>
                     </tr>
                 </thead>
                 <tbody id="classes-tbody" class="bg-white divide-y divide-gray-200">
@@ -139,6 +141,8 @@ function renderTable(classes) {
                     </div>
                 </div>
             </td>
+
+            <?php if(Yii::app()->user->isAdmin()): ?>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div class="flex space-x-2">
                     <a href="<?= Yii::app()->createUrl('classes/update') ?>?id=${classItem._id.$oid || classItem._id}" 
@@ -151,6 +155,7 @@ function renderTable(classes) {
                     </button>
                 </div>
             </td>
+            <?php endif; ?>
         `;
         
         tbody.appendChild(row);

@@ -60,20 +60,48 @@ class ClassesController extends Controller
     {
         try{
             Yii::log("Displaying classes index", CLogger::LEVEL_INFO, 'application.controllers.ClassesController');
-            $classes = ClassesHelper::listClasses($page);
-            $total = ClassesHelper::count();
-            $this->sendAjaxResponseIfAjax($classes,$total);
-            // echo CJSON::encode(array(
-            //     'success' => true,
-            //     'total' => $total,
-            //     'classes' =>  $classes,
-            // ));
-            // exit;
-            $this->render('index', array(
-                'classes' => $classes,
-                'total' => $total,
-            ));
 
+
+            // echo Yii::app()->user->isTeacher();
+            // exit;
+            if(Yii::app()->user->isAdmin()){
+                $classes = ClassesHelper::listClasses($page);
+                $total = ClassesHelper::count();
+                $this->sendAjaxResponseIfAjax($classes,$total);
+                // echo CJSON::encode(array(
+                //     'success' => true,
+                //     'total' => $total,
+                //     'classes' =>  $classes,
+                // ));
+                // exit;
+                $this->render('index', array(
+                    'classes' => $classes,
+                    'total' => $total,
+                ));
+            }
+            elseif(Yii::app()->user->isTeacher()){
+                $classes = ClassesHelper::getTeacherClasses(Yii::app()->user->getState("teacher_id"));
+                // print_r($classes);
+                // exit;
+                $total = count($classes);
+                $data = [1, 2, 3, 4, 5];
+                $data = array_map(fn($x) => $x * $x, $data);
+                print_r($data);
+                exit; 
+                $this->sendAjaxResponseIfAjax($classes,$total);
+                // echo CJSON::encode([
+                //     'success' => true,
+                //     'classes' => $data
+                // ]);
+                $this->render('index', array(
+                    'classes' => $classes,
+                    'total' => $total,
+                ));
+                // $this->
+            }
+            // exit;
+
+           
         }catch(Exception $e){
             Yii::log("Error listing classes: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.controllers.ClassesController');
             throw new CHttpException(500, 'An error occurred while listing classes: ' . $e->getMessage());

@@ -1,5 +1,6 @@
 <?php
 
+use MongoDB\BSON\ObjectId;
 class ClassesHelper{
     
     public static function classExists($id){
@@ -179,5 +180,24 @@ class ClassesHelper{
             Yii::log("Error fetching all classes: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.classesHelper');
             throw $e; // Re-throw the exception for further handling
         }
+    }
+
+    public static function getTeacherClasses($id){
+        $teacher = Teacher::model()->findByPk(new ObjectId($id));
+
+        // $criteria = new EMongoCriteria();
+        // $criteria->addCond('_id', '==', new ObjectId($id));
+        // $data = Teacher::model()->findAll($criteria);
+        // var_dump($data);
+        // exit;
+        
+        $classes = [];
+        foreach($teacher->classes as $class){
+            // echo((string)$class);
+            // exit;
+            $cur = Classes::model()->findByPk($class);
+            $classes[] = $cur;
+        }
+        return $classes;
     }
 }

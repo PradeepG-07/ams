@@ -68,10 +68,10 @@ class User extends EMongoDocument
 
     public function beforeSave()
     {
-        if ($this->isNewRecord) {
+        // if ($this->isNewRecord) {
             $this->password = CPasswordHelper::hashPassword($this->password);
             $this->created_at = new MongoDate();
-        }
+        // }
         $this->updated_at = new MongoDate();
         
         return parent::beforeSave();
