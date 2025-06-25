@@ -92,7 +92,7 @@ class User extends EMongoDocument
         if ($this->isNewRecord) {
             $this->created_at = new MongoDate();
         }
-        if ($this->isNewRecord || !CPasswordHelper::verifyPassword($this->password, $this->_oldPassword)) {
+        if ($this->isNewRecord ||($this->_oldPassword != $this->password && !CPasswordHelper::verifyPassword($this->password, $this->_oldPassword))) {
             $this->password = CPasswordHelper::hashPassword($this->password);
         }
         $this->updated_at = new MongoDate();
