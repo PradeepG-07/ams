@@ -13,6 +13,13 @@ class User extends EMongoDocument
     // public $address = [];
     public $created_at;
     public $updated_at;
+    private $_oldPassword;
+
+    public function init()
+    {
+        parent::init();
+        $this->_oldPassword = $this->password; 
+    }
  
     public function getCollectionName()
     {
@@ -52,6 +59,20 @@ class User extends EMongoDocument
         );
     }
 
+    public function attributeNames()
+    {
+        return array(
+            '_id',
+            'name',
+            'email',
+            'password',
+            'role',
+            'address',
+            'created_at',
+            'updated_at',
+        );
+    }
+
     public function checkUniqueEmail($attribute, $params)
     {
         if (!$this->isNewRecord) return true;
@@ -68,10 +89,12 @@ class User extends EMongoDocument
 
     public function beforeSave()
     {
-        // if ($this->isNewRecord) {
-            $this->password = CPasswordHelper::hashPassword($this->password);
+        if ($this->isNewRecord) {
             $this->created_at = new MongoDate();
-        // }
+        }
+        if ($this->isNewRecord || !CPasswordHelper::verifyPassword($this->password, $this->_oldPassword)) {
+            $this->password = CPasswordHelper::hashPassword($this->password);
+        }
         $this->updated_at = new MongoDate();
         
         return parent::beforeSave();

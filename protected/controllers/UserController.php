@@ -32,7 +32,7 @@ class UserController extends Controller
             array(
                 'allow', 
                 'actions' => array('create', 'update', 'delete'),
-                'users' => array('*'),
+                'expression' => "Yii::app()->user->isAdmin()",
             ),
             array(
                 'deny', // deny all users
