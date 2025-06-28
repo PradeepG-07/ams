@@ -47,6 +47,11 @@ class StudentController extends Controller
                 'expression' => "Yii::app()->user->isAdmin() || Yii::app()->user->isTeacher()",
             ),
             array(
+                'allow',
+                'actions' => array('deleteProfilePicture'),
+                'expression' => "Yii::app()->user->isAdmin()",
+            ),
+            array(
                 'deny',
                 'users' => array('*'),
             ),
@@ -187,6 +192,38 @@ class StudentController extends Controller
         } catch (Exception $e) {
             Yii::log("Error in actionAttendanceRange: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.controllers.StudentController');
             throw new CHttpException(500, 'An error occurred while processing attendance range: ' . $e->getMessage());
+        }
+    }
+
+    public function actionDeleteProfilePicture()
+    {
+        try {
+            if (!Yii::app()->request->isAjaxRequest) {
+                throw new CHttpException(400, 'Invalid request');
+            }
+            Yii::log("Processing profile picture deletion request", CLogger::LEVEL_INFO, 'application.controllers.StudentController');
+            if(StudentHelper::deleteProfilePicture($_POST['student_id'])) {
+                Yii::log("Profile picture deleted successfully", CLogger::LEVEL_INFO, 'application.controllers.StudentController');
+                echo CJSON::encode(array(
+                    'success' => true,
+                    'message' => 'Profile picture deleted successfully'
+                ));
+            } else {
+                Yii::log("Failed to delete profile picture", CLogger::LEVEL_WARNING, 'application.controllers.StudentController');
+                echo CJSON::encode(array(
+                    'success' => false,
+                    'message' => 'Failed to delete profile picture'
+                ));
+            }
+            Yii::app()->end();
+        }
+        catch (Exception $e) {
+            Yii::log("Error in actionDeleteProfilePicture: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.controllers.StudentController');
+            echo CJSON::encode(array(
+                'success' => false,
+                'message' => 'An error occurred while deleting the profile picture: ' . $e->getMessage()
+            ));
+            Yii::app()->end();
         }
     }
 }

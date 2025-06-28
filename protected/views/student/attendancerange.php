@@ -149,6 +149,12 @@ $(document).ready(function() {
             return;
         }
         
+        // Check if student is assigned to a class
+        <?php if (!Yii::app()->user->getState('studentClassId')): ?>
+        showFlashMessage('You are not assigned to any class. Please contact your administrator.', 'error');
+        return;
+        <?php endif; ?>
+        
         // Show loading indicator
         $('#loading-indicator').removeClass('hidden');
         $('#attendance-results').addClass('opacity-50');

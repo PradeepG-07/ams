@@ -598,11 +598,12 @@ class StudentHelper
                 Yii::log("Creating EMongoCriteria for attendance data provider", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
 
                 $criteria = new EMongoCriteria();
-                $criteria->addCond('student_ids', 'in', array($studentId));
+                // $criteria->addCond('student_ids', 'in', array($studentId));
                 $criteria->addCond('date', '>=', new MongoDate($fromTimestamp));
                 $criteria->addCond('date', '<=', new MongoDate($toTimestamp));
                 $criteria->addCond('class_id', '==', new ObjectId($classId));
 
+                $criteria->sort('date', EMongoCriteria::SORT_DESC);
                 Yii::log("Creating EMongoDocumentDataProvider with criteria", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
                 
                 $attendanceData = new EMongoDocumentDataProvider('Attendance', array(
@@ -716,5 +717,41 @@ class StudentHelper
             throw new CHttpException(500, 'An error occurred while calculating attendance: ' . $e->getMessage());
         }
         
+    }
+
+    public static function deleteProfilePicture($studentId)
+    {
+        try {
+            Yii::log("Deleting profile picture for student ID: $studentId", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+            if (!$studentId) {
+                Yii::log("Missing required parameters for profile picture deletion", CLogger::LEVEL_WARNING, 'application.helpers.studentHelper');
+                return false;
+            }
+            // Update student record to remove profile_picture_key
+            $studentObjectId = new ObjectId($studentId);
+            $student = self::loadStudentById($studentObjectId);
+
+            if ($student) {
+                $bucketName = $_ENV['S3_BUCKET_NAME'];
+                $deleteResult = S3Helper::deleteObject($student->profile_picture_key, $bucketName);
+                $student->profile_picture_key = null;
+                if (!$student->save()) {
+                    Yii::log("Failed to update student record after deleting profile picture", CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+                    return false;
+                }
+                Yii::log("Profile picture deleted successfully for student ID: $studentId", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+                return true;
+            } else {
+                Yii::log("Student not found for profile picture deletion", CLogger::LEVEL_WARNING, 'application.helpers.studentHelper');
+                return false;
+            }
+
+            Yii::log("Profile picture deleted successfully for student ID: $studentId", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+            return true;
+
+        } catch (Exception $e) {
+            Yii::log("Error deleting profile picture: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+            return false;
+        }
     }
 }

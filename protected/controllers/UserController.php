@@ -265,4 +265,30 @@ class UserController extends Controller
         }
     }
 
+    /**
+     * Delete student profile picture
+     */
+    public function actionDeleteProfilePicture()
+    {
+        try {
+            if (!Yii::app()->request->isAjaxRequest) {
+                throw new CHttpException(400, 'Invalid request');
+            }
+
+            $key = $_POST['key'] ?? null;
+            $studentId = $_POST['student_id'] ?? null;
+
+            $result = StudentHelper::deleteProfilePicture($key, $studentId);
+            
+            echo CJSON::encode($result);
+
+        } catch (Exception $e) {
+            Yii::log("Error in deleteProfilePicture action: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.controllers.UserController');
+            echo CJSON::encode(array(
+                'success' => false,
+                'message' => 'An error occurred while deleting the profile picture: ' . $e->getMessage()
+            ));
+        }
+    }
+
 }

@@ -185,6 +185,25 @@
 
             <div>
                 <?php echo $form->labelEx($student, 'profile_picture', array('class' => 'block text-sm font-medium text-gray-700 mb-1')); ?>
+                
+                <!-- Current Profile Picture Display -->
+                <?php if (!$user->isNewRecord && !empty($student->profile_picture_key)): ?>
+                <div id="current-profile-picture" class="mb-3 p-3 bg-gray-50 rounded-lg border">
+                    <p class="text-sm text-gray-600 mb-2">Current Profile Picture:</p>
+                    <div class="flex items-center space-x-3">
+                        <img src="<?php echo S3Helper::generateGETObjectUrl($student->profile_picture_key); ?>" 
+                             alt="Current Profile Picture" 
+                             class="w-20 h-20 rounded-lg object-cover border">
+                        <button type="button" 
+                                id="delete-profile-picture" 
+                                data-key="<?php echo CHtml::encode($student->profile_picture_key); ?>"
+                                class="px-3 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                            Delete Picture
+                        </button>
+                    </div>
+                </div>
+                <?php endif; ?>
+                
                 <?php echo $form->fileField($student, 'profile_picture', array(
                     'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500',
                     'accept' => 'image/*'
@@ -385,5 +404,44 @@
                     e.target.closest('.hobby-item').remove();
                 }
             });
+
+            // Profile picture delete functionality
+            const deleteBtn = document.getElementById('delete-profile-picture');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', function() {
+                    if (confirm('Are you sure you want to delete the current profile picture?')) {
+                        
+                        // Show loading state
+                        this.textContent = 'Deleting...';
+                        this.disabled = true;
+                        
+                        fetch('<?php echo Yii::app()->createUrl("student/deleteProfilePicture"); ?>', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: 'student_id=<?php echo $student->_id; ?>'
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                document.getElementById('current-profile-picture').style.display = 'none';
+                                alert('Profile picture deleted successfully!');
+                            } else {
+                                alert('Failed to delete profile picture: ' + data.message);
+                                this.textContent = 'Delete Picture';
+                                this.disabled = false;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('An error occurred while deleting the profile picture');
+                            this.textContent = 'Delete Picture';
+                            this.disabled = false;
+                        });
+                    }
+                });
+            }
         });
     </script>

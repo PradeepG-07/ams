@@ -75,9 +75,10 @@
                             $studentId = new MongoDB\BSON\ObjectId(Yii::app()->user->getState('student_id'));
                             $isPresent = false;
                             
+                            // if the student ID is in the student_ids array
                             if (isset($data['student_ids']) && is_array($data['student_ids'])) {
                                 foreach ($data['student_ids'] as $id) {
-                                    if ($id instanceof MongoDB\BSON\ObjectId && $id->__toString() === $studentId->__toString()) {
+                                    if ($id instanceof MongoDB\BSON\ObjectId && $id == $studentId) {
                                         $isPresent = true;
                                         break;
                                     }
