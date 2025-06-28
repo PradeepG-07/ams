@@ -15,12 +15,19 @@ class Attendance extends EMongoDocument
     {
         return array(
             ["date", 'required'],
-            ["date", 'date', 'format' => 'yyyy-MM-dd'],
+            // ["date", 'date', 'format' => 'yyyy-MM-dd'],
             ["class_id", 'safe'],
             ["student_ids", 'safe']
         );
     }
 
+    // public function afterFind()
+    // {
+    //     parent::afterFind();
+    //     if (!empty($this->class_id)) {
+    //         $this->class_id = Classes::model()->findByPk($this->class_id);
+    //     }
+    // }
     public function attributeLabels()
     {
         return array(

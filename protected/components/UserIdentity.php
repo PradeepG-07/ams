@@ -14,6 +14,8 @@ class UserIdentity extends CUserIdentity
     private $_teacherId;
     private $_studentId;
 
+    private $_studentClass;
+
 
     public function __construct($email, $password)
     {
@@ -62,6 +64,12 @@ class UserIdentity extends CUserIdentity
                     $student = StudentHelper::loadStudentByUserId($user->_id);
                     if ($student) {
                         $this->_studentId = (string)$student->_id;
+                        $cur = ClassesHelper::loadClassById($student->class);
+                        if ($cur) {
+                            $this->_studentClass = $cur->class_name;
+                        } else {
+                            $this->_studentClass = null; // Class not found
+                        }
                     }
                 }
                 break;
@@ -133,4 +141,11 @@ class UserIdentity extends CUserIdentity
         return null; // Not a student
     }
 
+    public function getStudentClass()
+    {
+        if ($this->_role === User::ROLE_STUDENT) {
+            return $this->_studentClass;
+        }
+        return null; // Not a student
+    }
 }

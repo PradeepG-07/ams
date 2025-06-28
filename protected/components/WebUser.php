@@ -36,4 +36,8 @@ class WebUser extends CWebUser
     public function getRole(){
         return $this->getState('role');
     }
+
+    public function getStudentClass(){
+        return $this->getState('class');
+    }
 }

@@ -38,13 +38,13 @@ class StudentController extends Controller
         return array(
             array(
                 'allow',
-                'actions' => array('dashboard'),
+                'actions' => array('dashboard', 'attendanceRange'),
                 'expression' => "Yii::app()->user->isStudent()",
             ),
             array(
                 'allow',
                 'actions' => array('index', 'getAllStudentsOfClass'),
-                'expression' => "Yii::app()->user->isAdmin() || Yii::app()->user->isTeacher()",
+                'expression' => "Yii::app()->user->isAdmin()",
             ),
             array(
                 'deny',
@@ -54,13 +54,29 @@ class StudentController extends Controller
     }
 
     public function actionDashboard(){
-        $studentId = Yii::app()->user->getState('student_id');
-        $studentId = new ObjectId($studentId); // Ensure studentId is an ObjectId
-        $studentData = StudentHelper::getStudentWithClassAndUserPopulated($studentId);
-
-        $this->render('dashboard', array(
-            'student' => $studentData,
-        ));
+        try {
+            Yii::log("Processing student dashboard request", CLogger::LEVEL_INFO, 'application.controllers.StudentController');
+            
+            $studentId = Yii::app()->user->getState('student_id');
+            Yii::log("Dashboard request for student ID: $studentId", CLogger::LEVEL_INFO, 'application.controllers.StudentController');
+            
+            $studentId = new ObjectId($studentId); // Ensure studentId is an ObjectId
+            $studentData = StudentHelper::getStudentWithClassAndUserPopulated($studentId);
+            $attendanceData = StudentHelper::calculateAttendance($studentId);
+            
+            Yii::log("Successfully retrieved student data and attendance for dashboard", CLogger::LEVEL_INFO, 'application.controllers.StudentController');
+        
+            $this->render('dashboard', array(
+                'student' => $studentData,
+                'totalSessions' => $attendanceData['total_sessions'],
+                'sessionsAttended' => $attendanceData['sessions_attended'],
+                'attendancePercentage' => $attendanceData['attendance_percentage'],
+            ));
+            
+        } catch (Exception $e) {
+            Yii::log("Error in actionDashboard: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.controllers.StudentController');
+            throw new CHttpException(500, 'An error occurred while loading the dashboard: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -122,5 +138,39 @@ class StudentController extends Controller
         }
     }
 
-
+    public function actionAttendanceRange(){
+        try {
+            Yii::log("Processing attendance range request", CLogger::LEVEL_INFO, 'application.controllers.StudentController');
+            
+            $studentId = Yii::app()->user->getState('student_id');
+            $fromDate = isset($_GET['fromDate']) ? $_GET['fromDate'] : '';
+            $toDate = isset($_GET['toDate']) ? $_GET['toDate'] : '';
+            
+            Yii::log("Attendance range parameters - studentId: $studentId, fromDate: $fromDate, toDate: $toDate", CLogger::LEVEL_INFO, 'application.controllers.StudentController');
+            
+            
+            $attendanceData = StudentHelper::getAttendanceDataProvider($studentId, $fromDate, $toDate);
+            
+            if (Yii::app()->request->isAjaxRequest) {
+                Yii::log("Rendering partial view for AJAX request", CLogger::LEVEL_INFO, 'application.controllers.StudentController');
+                $this->renderPartial('attendancegrid', array(
+                    'attendanceDataProvider' => $attendanceData,
+                    'fromDate' => $fromDate,
+                    'toDate' => $toDate,
+                ), false, true);
+                Yii::app()->end();
+            }
+            
+            Yii::log("Rendering full view for attendance range", CLogger::LEVEL_INFO, 'application.controllers.StudentController');
+            $this->render('attendancerange', array(
+                'attendanceDataProvider' => $attendanceData,
+                'fromDate' => $fromDate,
+                'toDate' => $toDate,
+            ));
+            
+        } catch (Exception $e) {
+            Yii::log("Error in actionAttendanceRange: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.controllers.StudentController');
+            throw new CHttpException(500, 'An error occurred while processing attendance range: ' . $e->getMessage());
+        }
+    }
 }

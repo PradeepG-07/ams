@@ -17,4 +17,6 @@
 
 
 # todo 26/06
-- [] fix UserController -> actionUpdate, where the user is getting deleted on update.
+- [x] fix password showing in update user
+- [x] fix create user showing up in update user
+- [x] a teacher cannot be turned into student or vice versa

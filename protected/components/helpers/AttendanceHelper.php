@@ -22,12 +22,32 @@ class AttendanceHelper{
                     'message' => 'Invalid class ID provided.'
                 );
             }
+            if(!isset($data['student_ids'])){
+                $model = new Attendance();
+                $model->attributes = $data;
+                $model->date = new MongoDate(strtotime($data['date']));
+                $model->class_id = new ObjectId($data['class_id']);
+                $model->student_ids = array();
+                if(!$model->save()){
+                    Yii::log("Failed to save attendance with no students: " . json_encode($model->getErrors()), CLogger::LEVEL_WARNING, 'application.helpers.AttendanceHelper');
+                    return array(
+                        'success' => false,
+                        'message' => 'Failed to save attendance with no students: ' . json_encode($model->getErrors())
+                    );
+                }
+                Yii::log("Attendance saved successfully with no students for class ID: " . $data['class_id'], CLogger::LEVEL_INFO, 'application.helpers.AttendanceHelper');
+                return array(
+                    'success' => true,
+                    'message' => 'Attendance saved successfully with no students!'
+                );
+            }
+
             // Validate student_ids
-            if (!isset($data['student_ids']) || !is_array($data['student_ids']) || empty($data['student_ids'])) {
-                Yii::log("No student IDs provided or invalid format", CLogger::LEVEL_ERROR, 'application.helpers.AttendanceHelper');
+            if (!is_array($data['student_ids'])) {
+                Yii::log("invalid format", CLogger::LEVEL_ERROR, 'application.helpers.AttendanceHelper');
                 return array(
                     'success' => false,
-                    'message' => 'No student IDs provided or invalid format.'
+                    'message' => 'invalid format.'
                 );
             }
             if(StudentHelper::validateStudentIds($data['student_ids']) === false){
@@ -49,7 +69,7 @@ class AttendanceHelper{
 
             $model = new Attendance();
             $model->attributes = $data;
-            $model->date = date('Y-m-d', strtotime($data['date']));
+            $model->date = new MongoDate(strtotime($data['date']));
             $model->class_id = new ObjectId($data['class_id']);
             $model->student_ids = array_map(function($id) {
                 return new ObjectId($id);

@@ -48,7 +48,9 @@
 				<?php elseif (Yii::app()->user->isStudent()): ?>
 				<!-- Student Navigation -->
 				<ul class="flex space-x-4">
-					</ul>
+				<li><a href="<?php echo Yii::app()->createUrl('student/dashboard'); ?>" class="hover:text-gray-400">Dashboard</a></li>
+				<li><a href="<?php echo Yii::app()->createUrl('student/attendancerange'); ?>" class="hover:text-gray-400">Attendance Range</a></li>
+				</ul>
 				<?php endif; ?>
 			</div>
 			
@@ -64,8 +66,8 @@
 						$studentId = Yii::app()->user->getState('student_id');
 						$studentId = new MongoDB\BSON\ObjectId($studentId); // Ensure studentId is an ObjectId
 						$student = StudentHelper::loadStudentById($studentId);
-						if ($student && !empty($student->profile_picture)) {
-							$profilePicture = $student->profile_picture;
+						if ($student && !empty($student->profile_picture_key)) {
+							$profilePicture = $student->profile_picture_key;
 						}
 					}
 					?>

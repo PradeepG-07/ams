@@ -74,6 +74,7 @@ class UserController extends Controller
                             $this->redirect(Yii::app()->createUrl('student/index'));
                         } else {
                             $model->delete();
+                            throw new CHttpException(400, 'Failed to create student: ' . $result['message']);
                         }
                     } elseif ($model->role == User::ROLE_TEACHER) {
                         if(empty($_POST['Teacher'])){
@@ -87,6 +88,7 @@ class UserController extends Controller
 
                         } else {
                             $model->delete();
+                            throw new CHttpException(400, 'Failed to create teacher: ' . $result['message']);   
                         }
                     } else {
                         throw new CHttpException(400, 'Invalid role specified.');
@@ -180,20 +182,22 @@ class UserController extends Controller
         try{
             $id = new ObjectId($id);
             $user = UserHelper::loadUserById($id);
+            if(!$user){
+                throw new CHttpException(404, 'User not found.');
+            }
+            Yii::log("Updating user with ID: $id", CLogger::LEVEL_INFO, 'application.controllers.UserController');
+            $user->password = ''; // Reset password to empty string for security
             
-            
-            $classes = ClassesHelper::getAllClasses();
 
+            $classes = ClassesHelper::getAllClasses();
             $student = new Student();
             $teacher = new Teacher();
 
-             
             if($user->role == User::ROLE_TEACHER){
                 $teacher = TeacherHelper::loadTeacherByUserId($id);
                 if (!$teacher) {
                     throw new CHttpException(404, 'Teacher not found.');
                 }
-
             } elseif($user->role == User::ROLE_STUDENT){
                 $student = StudentHelper::loadStudentByUserId($id);
                 if (!$student) {
@@ -202,56 +206,63 @@ class UserController extends Controller
             } else {
                 throw new CHttpException(400, 'Invalid role specified.');
             }
-            // $ = null;
-            if (isset($_POST['User'])) {
-                $user->attributes = $_POST['User'];
-                if ($user->save()) {
-                    if ($user->role == User::ROLE_STUDENT) {
-                        if(empty($_POST['Student'])){
-                            Yii::log("Student data is empty", CLogger::LEVEL_WARNING, 'application.controllers.UserController');
-                            throw new CHttpException(400, 'Student data is required.');
-                        }
-                        $result = StudentHelper::updateStudent($student->_id,$_POST['Student']);
-                        $student = $result['model'];
-                        if ($result['success']) {
-                            $this->redirect(Yii::app()->createUrl('student/index'));
-                        } else {
-                            $user->delete();
-                        }
-                    } elseif ($user->role == User::ROLE_TEACHER) {
-                        if(empty($_POST['Teacher'])){
-                            Yii::log("Teacher data is empty", CLogger::LEVEL_WARNING, 'application.controllers.UserController');
-                            throw new CHttpException(400, 'Teacher data is required.');
-                        }
-                        $result = TeacherHelper::updateTeacher($teacher->_id,$_POST['Teacher']); // Updated from $model->_id to $user->_id
-                        $teacher = $result['model'];
-                        if ($result['success']) {
-                            $this->redirect(Yii::app()->createUrl('teacher/index'));
 
-                        } else {
-                            $user->delete(); // Updated from $model->delete() to $user->delete()
-                        }
-                    } else {
-                        throw new CHttpException(400, 'Invalid role specified.');
+            if (isset($_POST['User']) || isset($_POST['Student']) || isset($_POST['Teacher'])) {
+                $updateResults = array();
+                
+                // Update User collection if User data is provided
+                
+                if (isset($_POST['User'])) {
+                    $_POST['User']['role'] = $user->role;
+                    $user->attributes = $_POST['User'];
+                    if(empty($_POST['User']['password'])){
+                        $user->password = $user->getOldPassword();
+                    }
+                    $updateResults['user'] = $user->save();
+                }
+                
+                // Update Student collection if Student data is provided
+                if (isset($_POST['Student']) && $user->role == User::ROLE_STUDENT) {
+                    $result = StudentHelper::updateStudent($student->_id, $_POST['Student']);
+                    $updateResults['student'] = $result['success'];
+                    $student = $result['model']; // Update with validation errors if any
+                }
+                
+                // Update Teacher collection if Teacher data is provided
+                if (isset($_POST['Teacher']) && $user->role == User::ROLE_TEACHER) {
+                    $result = TeacherHelper::updateTeacher($teacher->_id, $_POST['Teacher']);
+                    $updateResults['teacher'] = $result['success'];
+                    $teacher = $result['model'];
+                }
+                
+                // Check if all updates were successful
+                $allSuccessful = !in_array(false, $updateResults, true);
+                
+                if ($allSuccessful && !empty($updateResults)) {
+                    Yii::app()->user->setFlash('success', 'User updated successfully.');
+                    if($user->role == User::ROLE_STUDENT){
+                        $this->redirect(Yii::app()->createUrl('student/index'));
+                    } else{
+                        $this->redirect(Yii::app()->createUrl('teacher/index'));
                     }
                 } else {
-                    Yii::log("Failed to update user with ID: " . json_encode($user->getErrors()), CLogger::LEVEL_WARNING, 'application.controllers.UserController');
-                    Yii::log("Failed to update user with ID: $id", CLogger::LEVEL_WARNING, 'application.controllers.UserController');
-                    Yii::app()->user->setFlash('error', 'Failed to update user.');
+                    // Some updates failed, form will be re-rendered with validation errors
+                    Yii::app()->user->setFlash('error', 'Some updates failed. Please check the form for errors.');
                 }
             }
-           
+            
+        
             $this->render('_form', array(
                 'user' => $user,
                 'student' => $student,
                 'teacher' => $teacher,
                 'classes' => $classes,
             ));
-            return;
+            
         } catch (Exception $e) {
             Yii::log("Error updating user: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.controllers.UserController');
             throw new CHttpException(500, 'An error occurred while updating user: ' . $e->getMessage());
         }
-   
     }
+
 }

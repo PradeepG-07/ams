@@ -86,7 +86,7 @@ class LoginForm extends CFormModel
             Yii::app()->user->setState('role', $this->_identity->getUserRole());
             Yii::app()->user->setState('teacher_id', $this->_identity->getTeacherId());
             Yii::app()->user->setState('student_id', $this->_identity->getStudentId());
-            
+            Yii::app()->user->setState('studentClass', $this->_identity->getStudentClass());
             return true;
         } else {
             return false;

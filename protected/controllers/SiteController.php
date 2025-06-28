@@ -85,6 +85,23 @@ class SiteController extends Controller
         try {
             Yii::log("Starting actionLogin", CLogger::LEVEL_INFO, 'application.site.login');
 
+            if( !Yii::app()->user->isGuest ) {
+                Yii::log("User is already logged in, redirecting to home", CLogger::LEVEL_INFO, 'application.site.login');
+                if(Yii::app()->user->isTeacher()) {
+                    Yii::log("Redirecting teacher to dashboard", CLogger::LEVEL_INFO, 'application.site.login');
+                    $this->redirect(array('classes/index'));
+                } elseif(Yii::app()->user->isStudent()) {
+                    Yii::log("Redirecting student to dashboard", CLogger::LEVEL_INFO, 'application.site.login');
+                    $this->redirect(array('student/dashboard'));
+                } elseif(Yii::app()->user->isAdmin()) {
+                    Yii::log("Redirecting admin to dashboard", CLogger::LEVEL_INFO, 'application.site.login');
+                    $this->redirect(array('student/index'));
+                }
+                Yii::log("Redirecting to home URL", CLogger::LEVEL_INFO, 'application.site.login');
+                // Redirect to home URL if already logged in
+                $this->redirect(Yii::app()->homeUrl);
+            }
+
             $model = new LoginForm;
 
             // if it is ajax validation request
@@ -94,7 +111,7 @@ class SiteController extends Controller
             if (isset($_POST['LoginForm'])) {
                 Yii::log("Processing login form submission", CLogger::LEVEL_TRACE, 'application.site.login');
                 $model->attributes = $_POST['LoginForm'];
-                // validate user input and redirect to the previous page if valid
+
                 if ($model->validate() && $model->login()) {
                     Yii::log("User successfully logged in: " . Yii::app()->user->name, CLogger::LEVEL_INFO, 'application.site.login');
                     Yii::app()->user->setFlash('success', 'Welcome back, ' . Yii::app()->user->name . '!');

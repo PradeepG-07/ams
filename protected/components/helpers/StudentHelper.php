@@ -72,8 +72,9 @@ class StudentHelper
             Yii::log($id == null ? "Creating new student" : "Updating student with ID: $id", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
             $s3Key = $model->profile_picture_key;
             $model->attributes = $studentData;
-            $model->class = new ObjectId($model->class); // Ensure class is an ObjectId
-
+            if(!empty($model->class)){
+                $model->class = new ObjectId($model->class);
+            }
             $uploadedFile = CUploadedFile::getInstance($model, 'profile_picture');
             if ($uploadedFile) {
                 Yii::log("Processing profile picture upload", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
@@ -184,6 +185,9 @@ class StudentHelper
             ->aggregate();
 
         $students = $aggregationResult['result'] ?? [];
+        //  echo "<pre>";
+        // print_r($students);
+        // exit;
         $studentsWithUrls = array_map(function($student) {
             // $student is an array from aggregation result
     
@@ -341,6 +345,10 @@ class StudentHelper
             $students = $ret['result'] ?? [];
             if ($students) {
                 Yii::log("Students fetched successfully for student ID: $studentId", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+                if (!empty($students[0]['profile_picture_key'])) {
+                    $profileUrl = S3Helper::generateGETObjectUrl($students[0]['profile_picture_key']);
+                    $students[0]['profile_picture_url'] = $profileUrl;
+                }
                 return $students[0];
             } else {
                 Yii::log("No students found for student ID: $studentId", CLogger::LEVEL_WARNING, 'application.helpers.studentHelper');
@@ -370,5 +378,298 @@ class StudentHelper
         }
         Yii::log("All student IDs are valid.", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
         return true;
+    }
+
+    public static function getAttendanceBetweenDates($id, $fromDate, $toDate){
+        try{
+            Yii::log("Fetching attendance for student ID: $id between dates $fromDate and $toDate", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+            if (empty($id) || empty($fromDate) || empty($toDate)) {
+                Yii::log("Invalid parameters provided for fetching attendance.", CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+                throw new InvalidArgumentException('Invalid parameters provided for fetching attendance.');
+            }
+            // Ensure dates are in valid format
+            $fromDate = date('Y-m-d', strtotime($fromDate));
+            $toDate = date('Y-m-d', strtotime($toDate));
+            if (!$fromDate || !$toDate) {
+                Yii::log("Invalid date format provided for fetching attendance.", CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+                throw new InvalidArgumentException('Invalid date format provided for fetching attendance.');
+            }
+            // Ensure $id is a valid ObjectId
+            if (!preg_match('/^[0-9a-f]{24}$/', $id)) {
+                Yii::log("Invalid student ID format provided for fetching attendance: $id", CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+                throw new InvalidArgumentException('Invalid student ID format provided for fetching attendance.');
+            }
+            $aggregationResult = Attendance::model()->startAggregation()
+            ->addStage([
+                '$match' => [
+                    'date' => [
+                        '$lte' => new MongoDate(strtotime($toDate)),
+                        '$gte' => new MongoDate(strtotime($fromDate))
+                    ],
+                    '$expr' => [
+                        '$in' => [new ObjectId($id), '$student_ids']
+                    ]
+                ]
+            ])
+            ->aggregate();
+            Yii::log("Attendance fetched successfully for student ID: $id between dates $fromDate and $toDate", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+            if (empty($aggregationResult['result'])) {
+                Yii::log("No attendance records found for student ID: $id between dates $fromDate and $toDate", CLogger::LEVEL_WARNING, 'application.helpers.studentHelper');
+                return [];
+            }
+            return $aggregationResult['result'] ?? [];
+        }
+        catch(Exception $e){
+            Yii::log("Error fetching attendance between dates: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+            throw new CHttpException(500, 'An error occurred while fetching attendance: ' . $e->getMessage());
+        }
+    }
+
+    public static function getAttendanceBetweenDatesWithPagination($id, $fromDate, $toDate, $page = 1, $pageSize = 10){
+        try{
+            Yii::log("Fetching paginated attendance for student ID: $id between dates $fromDate and $toDate (page: $page, pageSize: $pageSize)", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+            if (empty($id) || empty($fromDate) || empty($toDate)) {
+                Yii::log("Invalid parameters provided for fetching attendance.", CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+                throw new InvalidArgumentException('Invalid parameters provided for fetching attendance.');
+            }
+            
+            // Ensure dates are in valid format
+            $fromDate = date('Y-m-d', strtotime($fromDate));
+            $toDate = date('Y-m-d', strtotime($toDate));
+            if (!$fromDate || !$toDate) {
+                Yii::log("Invalid date format provided for fetching attendance.", CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+                throw new InvalidArgumentException('Invalid date format provided for fetching attendance.');
+            }
+            
+            // Ensure $id is a valid ObjectId
+            if (!preg_match('/^[0-9a-f]{24}$/', $id)) {
+                Yii::log("Invalid student ID format provided for fetching attendance: $id", CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+                throw new InvalidArgumentException('Invalid student ID format provided for fetching attendance.');
+            }
+
+            $studentObjectId = new ObjectId($id);
+            $skip = ($page - 1) * $pageSize;
+
+            // First get total count
+            $countResult = Attendance::model()->startAggregation()
+                ->addStage([
+                    '$match' => [
+                        'date' => [
+                            '$lte' => new MongoDate(strtotime($toDate)),
+                            '$gte' => new MongoDate(strtotime($fromDate))
+                        ],
+                        '$expr' => [
+                            '$in' => [$studentObjectId, '$student_ids']
+                        ]
+                    ]
+                ])
+                ->addStage([
+                    '$count' => 'total'
+                ])
+                ->aggregate();
+
+            $total = isset($countResult['result'][0]['total']) ? $countResult['result'][0]['total'] : 0;
+
+            // Then get paginated data with class information
+            $aggregationResult = Attendance::model()->startAggregation()
+                ->addStage([
+                    '$match' => [
+                        'date' => [
+                            '$lte' => new MongoDate(strtotime($toDate)),
+                            '$gte' => new MongoDate(strtotime($fromDate))
+                        ],
+                        '$expr' => [
+                            '$in' => [$studentObjectId, '$student_ids']
+                        ]
+                    ]
+                ])
+                ->addStage([
+                    '$lookup' => [
+                        'from' => 'classes',
+                        'localField' => 'class_id',
+                        'foreignField' => '_id',
+                        'as' => 'class_info'
+                    ]
+                ])
+                ->addStage([
+                    '$unwind' => [
+                        'path' => '$class_info',
+                        'preserveNullAndEmptyArrays' => true
+                    ]
+                ])
+                ->addStage([
+                    '$addFields' => [
+                        'class_name' => '$class_info.name'
+                    ]
+                ])
+                ->sort(['date' => EMongoCriteria::SORT_DESC])
+                ->skip($skip)
+                ->limit($pageSize)
+                ->aggregate();
+
+            $data = $aggregationResult['result'] ?? [];
+            
+            Yii::log("Paginated attendance fetched successfully for student ID: $id between dates $fromDate and $toDate", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+            
+            return array(
+                'data' => $data,
+                'total' => $total,
+                'page' => $page,
+                'pageSize' => $pageSize
+            );
+            
+        } catch(Exception $e){
+            Yii::log("Error fetching paginated attendance between dates: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+            throw new CHttpException(500, 'An error occurred while fetching attendance: ' . $e->getMessage());
+        }
+    }
+
+    public static function getAttendanceDataProvider($studentId, $fromDate, $toDate, $pageSize = 5)
+    {
+        try {
+            Yii::log("Getting attendance data provider for student ID: $studentId, fromDate: $fromDate, toDate: $toDate", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+            
+            // Validate input parameters
+            if (empty($studentId)) {
+                Yii::log("Student ID is required for attendance data provider", CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+                throw new InvalidArgumentException('Student ID is required');
+            }
+            
+            // Ensure studentId is ObjectId
+            if (!($studentId instanceof ObjectId)) {
+                if (!preg_match('/^[0-9a-f]{24}$/', $studentId)) {
+                    Yii::log("Invalid student ID format: $studentId", CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+                    throw new InvalidArgumentException('Invalid student ID format');
+                }
+                $studentId = new ObjectId($studentId);
+            }
+            
+            $attendanceData = [];
+            
+            // Only process if both dates are provided
+            if (!empty($fromDate) && !empty($toDate)) {
+                Yii::log("Creating criteria for date range: $fromDate to $toDate", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+                
+                // Validate date formats
+                $fromTimestamp = strtotime($fromDate);
+                $toTimestamp = strtotime($toDate);
+                
+                if ($fromTimestamp === false || $toTimestamp === false) {
+                    Yii::log("Invalid date format provided - fromDate: $fromDate, toDate: $toDate", CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+                    throw new InvalidArgumentException('Invalid date format provided');
+                }
+                
+                if ($fromTimestamp > $toTimestamp) {
+                    Yii::log("From date ($fromDate) cannot be later than to date ($toDate)", CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+                    throw new InvalidArgumentException('From date cannot be later than to date');
+                }
+                // check if both are less than today
+                $today = strtotime(date('Y-m-d'));
+                if ($fromTimestamp > $today || $toTimestamp > $today) {
+                    Yii::log("Date range cannot be in the future - fromDate: $fromDate, toDate: $toDate", CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+                    throw new InvalidArgumentException('Date range cannot be in the future');
+                }
+                
+                $criteria = new EMongoCriteria();
+                $criteria->addCond('student_ids', 'in', array($studentId));
+                $criteria->addCond('date', '>=', new MongoDate($fromTimestamp));
+                $criteria->addCond('date', '<=', new MongoDate($toTimestamp));
+                
+                Yii::log("Creating EMongoDocumentDataProvider with criteria", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+                
+                $attendanceData = new EMongoDocumentDataProvider('Attendance', array(
+                    'criteria' => $criteria,
+                    'pagination' => array(
+                        'pageSize' => $pageSize,    
+                    )
+                ));
+                
+                Yii::log("Attendance data provider created successfully", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+            } else {
+                Yii::log("Empty date range provided, returning empty data provider", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+            }
+            
+            return $attendanceData;
+            
+        } catch (Exception $e) {
+            Yii::log("Error creating attendance data provider: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+            throw $e;
+        }
+    }
+
+    public static function calculateAttendance($studentId){
+        /*
+        student has class id.
+        can use class id in 
+        can join from students to attendance
+        match the class id to be the class in student
+        and check for the student _id prescence 
+        in all of the class records
+        from there we can get total sessions
+        and sessions attended
+        */
+
+        try{
+            $aggregationResult = Student::model()->startAggregation()
+            ->addStage([
+                '$match' => [
+                    '_id' => $studentId
+                ]
+            ])
+            ->addStage([
+                '$lookup' => [
+                    'from' => 'attendance',
+                    'localField' => 'class',
+                    'foreignField' => 'class_id',
+                    'as' => 'result'
+                ]
+            ])
+            ->addStage([
+                '$addFields' => [
+                    'total_sessions' => [
+                        '$size' => '$result'
+                    ],
+                    'sessions_attended' => [
+                        '$size' => [
+                            '$filter' => [
+                                'input' => '$result',
+                                'as' => 'attendance',
+                                'cond' => [
+                                    '$in' => [$studentId, '$$attendance.student_ids']
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ])
+            ->addStage([
+                '$project' => [
+                    'total_sessions' => 1,
+                    'sessions_attended' => 1,
+                    'attendance_percentage' => [
+                        '$multiply' => [
+                            ['$divide' => ['$sessions_attended', '$total_sessions']],
+                            100
+                        ]
+                    ]
+                ]
+            ])
+            ->aggregate();
+            if (empty($aggregationResult['result'])) {
+                Yii::log("No attendance records found for student ID: $studentId", CLogger::LEVEL_WARNING, 'application.helpers.studentHelper');
+                return [
+                    'total_sessions' => 0,
+                    'sessions_attended' => 0,
+                    'attendance_percentage' => 0
+                ];
+            }
+            Yii::log("Attendance calculated for student ID: $studentId", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+            return $aggregationResult['result'][0];
+        }
+        catch(Exception $e){
+            Yii::log("Error calculating attendance for student ID: $studentId - " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+            throw new CHttpException(500, 'An error occurred while calculating attendance: ' . $e->getMessage());
+        }
+        
     }
 }

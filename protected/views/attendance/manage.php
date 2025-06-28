@@ -20,7 +20,7 @@ $this->breadcrumbs = array(
                 <!-- Date Selector -->
                 <div>
                     <label for="attendance-date" class="block text-sm font-medium text-gray-700 mb-2">Date</label>
-                    <input type="date" id="attendance-date" name="attendance_date"
+                    <input type="date"  max= <?php echo date('Y-m-d'); ?> id="attendance-date" name="attendance_date"
                         value="<?php echo date('Y-m-d'); ?>"
                         class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
                 </div>

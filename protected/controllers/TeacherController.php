@@ -29,7 +29,7 @@ class TeacherController extends Controller
             array(
                 'allow',
                 'actions'=>array('index'),
-                'expression'=>"Yii::app()->user->isAdmin() || Yii::app()->user->isTeacher()",
+                'expression'=>"Yii::app()->user->isAdmin()",
             ),
             array('deny',
                 'users'=>array('*'),

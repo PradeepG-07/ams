@@ -29,6 +29,7 @@ class User extends EMongoDocument
     public function rules()
     {
         return array(
+            array('_id', 'safe'),
             array('name, email, password, role', 'required'),
             array('email', 'email'),
             array('email', 'checkUniqueEmail', 'on' => 'insert'),
@@ -108,6 +109,11 @@ class User extends EMongoDocument
         if ($this->address === null) {
             $this->address = array();
         }
+    }
+
+    public function getOldPassword()
+    {
+        return $this->_oldPassword;
     }
 
     public static function getRoles(){
