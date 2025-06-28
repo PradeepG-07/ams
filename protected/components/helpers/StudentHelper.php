@@ -343,20 +343,35 @@ class StudentHelper
                 ])
                 ->aggregate();
             $students = $ret['result'] ?? [];
-            if ($students) {
-                Yii::log("Students fetched successfully for student ID: $studentId", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+            if (!empty($students)) {
+                Yii::log("Student fetched successfully for student ID: $studentId", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+                
+                // Handle profile picture URL
                 if (!empty($students[0]['profile_picture_key'])) {
                     $profileUrl = S3Helper::generateGETObjectUrl($students[0]['profile_picture_key']);
                     $students[0]['profile_picture_url'] = $profileUrl;
                 }
+                
+                // Handle missing class information
+                if (empty($students[0]['class_info'])) {
+                    $students[0]['class_info'] = [
+                        'class_name' => 'No Class Assigned',
+                        '_id' => null
+                    ];
+                    Yii::log("Student ID: $studentId has no class assigned", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+                }
+                
                 return $students[0];
             } else {
-                Yii::log("No students found for student ID: $studentId", CLogger::LEVEL_WARNING, 'application.helpers.studentHelper');
-                return [];
+                Yii::log("No student found for student ID: $studentId", CLogger::LEVEL_WARNING, 'application.helpers.studentHelper');
+                throw new CHttpException(404, 'Student not found.');
             }
         } catch (Exception $e) {
-            Yii::log("Error fetching students for student ID: $studentId - " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
-            throw new CHttpException(500, 'An error occurred while fetching students: ' . $e->getMessage());
+            Yii::log("Error fetching student for student ID: $studentId - " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+            if ($e instanceof CHttpException) {
+                throw $e;
+            }
+            throw new CHttpException(500, 'An error occurred while fetching student: ' . $e->getMessage());
         }
     }
 
@@ -647,9 +662,15 @@ class StudentHelper
                     'total_sessions' => 1,
                     'sessions_attended' => 1,
                     'attendance_percentage' => [
-                        '$multiply' => [
-                            ['$divide' => ['$sessions_attended', '$total_sessions']],
-                            100
+                        '$cond' => [
+                            'if' => ['$eq' => ['$total_sessions', 0]],
+                            'then' => 0,
+                            'else' => [
+                                '$multiply' => [
+                                    ['$divide' => ['$sessions_attended', '$total_sessions']],
+                                    100
+                                ]
+                            ]
                         ]
                     ]
                 ]

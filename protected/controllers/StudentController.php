@@ -69,8 +69,8 @@ class StudentController extends Controller
             $this->render('dashboard', array(
                 'student' => $studentData,
                 'totalSessions' => $attendanceData['total_sessions'],
-                'sessionsAttended' => $attendanceData['sessions_attended'],
-                'attendancePercentage' => $attendanceData['attendance_percentage'],
+                'sessionsAttended' => $attendanceData['sessions_attended'] ?? 0,
+                'attendancePercentage' => $attendanceData['attendance_percentage'] ?? 0,
             ));
             
         } catch (Exception $e) {
