@@ -15,6 +15,7 @@ class UserIdentity extends CUserIdentity
     private $_studentId;
 
     private $_studentClass;
+    private $_studentClassId;
 
 
     public function __construct($email, $password)
@@ -64,11 +65,28 @@ class UserIdentity extends CUserIdentity
                     $student = StudentHelper::loadStudentByUserId($user->_id);
                     if ($student) {
                         $this->_studentId = (string)$student->_id;
-                        $cur = ClassesHelper::loadClassById($student->class);
-                        if ($cur) {
-                            $this->_studentClass = $cur->class_name;
+                        
+                        // Handle class loading gracefully - class might not exist or be empty
+                        if (!empty($student->class)) {
+                            try {
+                                $cur = ClassesHelper::loadClassById($student->class);
+                                if ($cur) {
+                                    $this->_studentClassId = (string)$cur->_id; // Store class ID
+                                    $this->_studentClass = $cur->class_name;
+                                } else {
+                                    $this->_studentClassId = null; // Class not found
+                                    $this->_studentClass = null; // Class not found
+                                }
+                            } catch (CHttpException $e) {
+                                // Class doesn't exist - log warning and set to null
+                                Yii::log("Student {$student->_id} has invalid class ID: {$student->class}", CLogger::LEVEL_WARNING, 'application.components.UserIdentity');
+                                $this->_studentClass = null;
+                                $this->_studentClassId = null; // Class not found
+                            }
                         } else {
-                            $this->_studentClass = null; // Class not found
+                            // Student has no class assigned
+                            $this->_studentClass = null;
+                            $this->_studentClassId = null; // Class not found
                         }
                     }
                 }
@@ -145,6 +163,14 @@ class UserIdentity extends CUserIdentity
     {
         if ($this->_role === User::ROLE_STUDENT) {
             return $this->_studentClass;
+        }
+        return null; // Not a student
+    }
+
+    public function getStudentClassId()
+    {
+        if ($this->_role === User::ROLE_STUDENT) {
+            return $this->_studentClassId;
         }
         return null; // Not a student
     }

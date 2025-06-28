@@ -262,10 +262,16 @@ class StudentHelper
     {
         Yii::log("Fetching students for class ID: $classId", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
         try {
+            // Handle empty or null class ID
+            if (empty($classId)) {
+                Yii::log("Empty class ID provided, returning empty array", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+                return [];
+            }
+            
             $ret = Student::model()->startAggregation()
                 ->addStage([
                     '$match' => [
-                        'class' =>$classId // Ensure class is an ObjectId
+                        'class' => $classId // Ensure class is an ObjectId
                     ]
                 ])
                 ->addStage([
@@ -584,12 +590,19 @@ class StudentHelper
                     Yii::log("Date range cannot be in the future - fromDate: $fromDate, toDate: $toDate", CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
                     throw new InvalidArgumentException('Date range cannot be in the future');
                 }
-                
+                $classId = Yii::app()->user->getState('studentClassId');
+                if (empty($classId)) {
+                    Yii::log("Class ID is required for attendance data provider", CLogger::LEVEL_ERROR, 'application.helpers.studentHelper');
+                    throw new InvalidArgumentException('Class ID is required');
+                }
+                Yii::log("Creating EMongoCriteria for attendance data provider", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+
                 $criteria = new EMongoCriteria();
                 $criteria->addCond('student_ids', 'in', array($studentId));
                 $criteria->addCond('date', '>=', new MongoDate($fromTimestamp));
                 $criteria->addCond('date', '<=', new MongoDate($toTimestamp));
-                
+                $criteria->addCond('class_id', '==', new ObjectId($classId));
+
                 Yii::log("Creating EMongoDocumentDataProvider with criteria", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
                 
                 $attendanceData = new EMongoDocumentDataProvider('Attendance', array(
@@ -625,6 +638,17 @@ class StudentHelper
         */
 
         try{
+            // First check if student has a class assigned
+            $student = Student::model()->findByPk($studentId);
+            if (!$student || empty($student->class)) {
+                Yii::log("Student ID: $studentId has no class assigned, returning zero attendance", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
+                return [
+                    'total_sessions' => 0,
+                    'sessions_attended' => 0,
+                    'attendance_percentage' => 0
+                ];
+            }
+            
             $aggregationResult = Student::model()->startAggregation()
             ->addStage([
                 '$match' => [

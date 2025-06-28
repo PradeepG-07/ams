@@ -25,9 +25,8 @@ class ClassesHelper{
     public static function loadClassById($id){
 
         try{
-
+            
             Yii::log("Loading class model with id: " . $id, CLogger::LEVEL_TRACE, 'application.helpers.classesHelper');
-
             $class = Classes::model()->findByPk($id);
             if($class){
                 return $class;

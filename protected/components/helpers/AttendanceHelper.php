@@ -14,8 +14,16 @@ class AttendanceHelper{
                 );
             }
 
-            // Validate class_id
-            if (!isset($data['class_id']) || !is_string($data['class_id']) || ClassesHelper::loadClassById(new ObjectId($data['class_id'])) === null) {
+            // Validate class_id - handle empty class_id gracefully
+            if (!isset($data['class_id']) || empty($data['class_id'])) {
+                Yii::log("Empty class ID provided, cannot save attendance", CLogger::LEVEL_ERROR, 'application.helpers.AttendanceHelper');
+                return array(
+                    'success' => false,
+                    'message' => 'Class ID is required to save attendance.'
+                );
+            }
+            
+            if (!is_string($data['class_id']) || ClassesHelper::loadClassById(new ObjectId($data['class_id'])) === null) {
                 Yii::log("Invalid class ID provided: " . $data['class_id'], CLogger::LEVEL_ERROR, 'application.helpers.AttendanceHelper');
                 return array(
                     'success' => false,

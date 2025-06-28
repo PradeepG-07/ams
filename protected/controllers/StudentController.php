@@ -44,7 +44,7 @@ class StudentController extends Controller
             array(
                 'allow',
                 'actions' => array('index', 'getAllStudentsOfClass'),
-                'expression' => "Yii::app()->user->isAdmin()",
+                'expression' => "Yii::app()->user->isAdmin() || Yii::app()->user->isTeacher()",
             ),
             array(
                 'deny',
@@ -109,10 +109,21 @@ class StudentController extends Controller
     {
         try {
             Yii::log("Fetching students for class ID: $classId", CLogger::LEVEL_INFO, 'application.controllers.StudentController');
+            
+            // Handle empty or invalid class ID
+            if (empty($classId)) {
+                Yii::log("Empty class ID provided, returning empty student list", CLogger::LEVEL_INFO, 'application.controllers.StudentController');
+                echo CJSON::encode(array(
+                    'success' => true,
+                    'total' => 0,
+                    'students' => [],
+                    'message' => 'No class ID provided'
+                ));
+                Yii::app()->end();
+            }
+            
             $classId = new ObjectId($classId); // Ensure classId is an ObjectId
             $students = StudentHelper::getStudentsFromClassName($classId);
-            // print_r(CJSON::encode($students));
-            // exit;
             $total = count($students);
             $this->sendAjaxResponseIfAjax($students, $total);
             echo CJSON::encode(array(
@@ -122,7 +133,12 @@ class StudentController extends Controller
             ));
         } catch (Exception $e) {
             Yii::log("Error fetching students for class ID: $classId - " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.controllers.StudentController');
-            throw new CHttpException(500, 'An error occurred while fetching students: ' . $e->getMessage());
+            echo CJSON::encode(array(
+                'success' => false,
+                'total' => 0,
+                'students' => [],
+                'message' => 'Error fetching students: ' . $e->getMessage()
+            ));
         }
     }
 

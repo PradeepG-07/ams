@@ -122,6 +122,12 @@
             <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-lg font-semibold text-gray-900">Attendance Overview</h2>
+                    <?php if (!empty($student['class_info']['_id'])): ?>
+                        <a href="<?php echo $this->createUrl('attendanceRange'); ?>" 
+                           class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                            View Details →
+                        </a>
+                    <?php endif; ?>
                 </div>
                 
                 <!-- Attendance Progress -->
