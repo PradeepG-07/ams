@@ -15,7 +15,7 @@ class Attendance extends EMongoDocument
     public function rules()
     {
         return array(
-            ["date,class_id,student_ids,teacher_id", 'required'],
+            ["date,class_id,teacher_id", 'required'],
             // ["date", 'date', 'format' => 'yyyy-MM-dd'],
             ["class_id,student_ids,teacher_id", 'safe'],
         );

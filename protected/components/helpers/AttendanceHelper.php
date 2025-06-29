@@ -84,18 +84,22 @@ class AttendanceHelper{
          
             // check if attendance already exists for this class and date
             // skip this if admin is marking attendance
-            if(Yii::app()->user->isTeacher()){
-                $criteria = new EMongoCriteria();
-                $criteria->addCond('class_id', '==', new ObjectId($data['class_id']));
-                $criteria->addCond('date', '==', new MongoDate(strtotime($data['date'])));
-                $criteria->addCond('teacher_id', '==', new ObjectId($teacher_id));
-                $existingAttendance = Attendance::model()->find($criteria);
-                if($existingAttendance){
-                    Yii::log("Attendance already exists for class ID: " . $data['class_id'] . " on date: " . $data['date'], CLogger::LEVEL_WARNING, 'application.helpers.AttendanceHelper');
+            $criteria = new EMongoCriteria();
+            $criteria->addCond('class_id', '==', new ObjectId($data['class_id']));
+            $criteria->addCond('date', '==', new MongoDate(strtotime($data['date'])));
+            $criteria->addCond('teacher_id', '==', new ObjectId($teacher_id));
+            $existingAttendance = Attendance::model()->find($criteria);
+            if($existingAttendance){
+                Yii::log("Attendance already exists for class ID: " . $data['class_id'] . " on date: " . $data['date'], CLogger::LEVEL_WARNING, 'application.helpers.AttendanceHelper');
+                if(Yii::app()->user->isTeacher()){
                     return array(
                         'success' => false,
                         'message' => 'Attendance already exists for this class and date.'
                     );
+                }else{
+                    // if admin is marking attendance, delete existing attendance for this class and date
+                    $existingAttendance->delete();
+                    Yii::log("Admin is marking attendance, allowing duplicate entries for class ID: " . $data['class_id'], CLogger::LEVEL_INFO, 'application.helpers.AttendanceHelper');
                 }
             }
 
