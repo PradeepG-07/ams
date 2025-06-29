@@ -74,14 +74,25 @@ class AttendanceController extends Controller
             throw new CHttpException(500, 'An error occurred while listing classes: ' . $e->getMessage());
         }
     }
-    public function actionSave(){
+    public function actionSave($teacher_id = null){
         // print_r($_POST);
         // check if date is <= today
         
         try {
             Yii::log("Saving attendance for class ID: " . $_POST['class_id'], CLogger::LEVEL_INFO, 'application.controllers.AttendanceController');
             // Validate class_id
-            $result = AttendanceHelper::saveAttendance($_POST);
+            if(isset($teacher_id) && !empty($teacher_id) && !Yii::app()->user->isAdmin()){
+                echo CJSON::encode(array(
+                    'success' => false,
+                    'message' => 'You are not allowed to save attendance.'
+                ));
+                Yii::log("Unauthorized attempt to save attendance by user ID: " . Yii::app()->user->id, CLogger::LEVEL_WARNING, 'application.controllers.AttendanceController');
+                return;
+            }
+            if(Yii::app()->user->isTeacher()){
+                $teacher_id = Yii::app()->user->getState('teacher_id');
+            }
+            $result = AttendanceHelper::saveAttendance($_POST,$teacher_id);
             if ($result['success']) {
                 echo CJSON::encode(array(
                     'success' => true,
