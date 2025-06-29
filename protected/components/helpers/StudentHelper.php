@@ -506,6 +506,37 @@ class StudentHelper
                 ])
                 ->addStage([
                     '$lookup' => [
+                        'from' => 'teachers',
+                        'localField' => 'teacher_id',
+                        'foreignField' => '_id',
+                        'as' => 'teacher_info',
+                        'pipeline' => [
+                            [
+                                '$lookup' => [
+                                    'from' => 'users',
+                                    'localField' => 'user_id',
+                                    'foreignField' => '_id',
+                                    'as' => 'user_info'
+                                ]
+                            ],
+                            [
+                                '$unwind' => [
+                                    'path' => '$user_info',
+                                    'preserveNullAndEmptyArrays' => true
+                                ]
+                            ],
+                            [
+                                '$project' => [
+                                    'name' => '$user_info.name',
+                                    'email' => '$user_info.email',
+                                    '_id' => 0
+                                ]
+                            ]
+                        ]
+                    ]
+                ])
+                ->addStage([
+                    '$lookup' => [
                         'from' => 'classes',
                         'localField' => 'class_id',
                         'foreignField' => '_id',
@@ -521,6 +552,17 @@ class StudentHelper
                 ->addStage([
                     '$addFields' => [
                         'class_name' => '$class_info.name'
+                    ]
+                ])
+                ->addStage([
+                    '$unwind' => [
+                        'path' => '$teacher_info',
+                        'preserveNullAndEmptyArrays' => true
+                    ]
+                ])
+                ->addStage([
+                    '$addFields' => [
+                        'teacher_name' => '$teacher_info.name'
                     ]
                 ])
                 ->sort(['date' => EMongoCriteria::SORT_DESC])
