@@ -38,6 +38,17 @@ $this->breadcrumbs = array(
                 </div>
             </div>
 
+            <?php if (Yii::app()->user->isAdmin()): ?>
+            <!-- Teacher Selector (On Behalf Of) - Only for Admin -->
+            <div class="mb-6">
+                <label for="teacher-selector" class="block text-sm font-medium text-gray-700 mb-2">On Behalf Of</label>
+                <select id="teacher-selector" name="teacher_id" disabled
+                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                    <option value="">Select a class to get teachers</option>
+                </select>
+            </div>
+            <?php endif; ?>
+
             <!-- Loading Indicator -->
             <div id="loading-indicator" class="flex justify-center py-8 hidden">
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
@@ -53,6 +64,9 @@ $this->breadcrumbs = array(
                 <form id="attendance-form">
                     <input type="hidden" id="selected-date" name="date">
                     <input type="hidden" id="selected-class-id" name="class_id">
+                    <?php if (Yii::app()->user->isAdmin()): ?>
+                    <input type="hidden" id="selected-teacher-id" name="teacher_id">
+                    <?php endif; ?>
 
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
@@ -100,11 +114,56 @@ $this->breadcrumbs = array(
         const markAllPresentBtn = document.getElementById('mark-all-present');
         const markAllAbsentBtn = document.getElementById('mark-all-absent');
         const saveAttendanceBtn = document.getElementById('save-attendance');
+        const teacherSelector = document.getElementById('teacher-selector');
 
-        // Update hidden fields when the date or class changes
+        // Update hidden fields when the date, class, or teacher changes
         function updateHiddenFields() {
             document.getElementById('selected-date').value = attendanceDate.value;
             document.getElementById('selected-class-id').value = classSelector.value;
+            <?php if (Yii::app()->user->isAdmin()): ?>
+            if (document.getElementById('selected-teacher-id')) {
+                document.getElementById('selected-teacher-id').value = teacherSelector ? teacherSelector.value : '';
+            }
+            <?php endif; ?>
+        }
+
+        // Load teachers for the selected class (Admin only)
+        function loadTeachers(classId) {
+            <?php if (Yii::app()->user->isAdmin()): ?>
+            if (!classId || !teacherSelector) return;
+
+            // Reset and disable teacher selector
+            teacherSelector.innerHTML = '<option value="">Loading teachers...</option>';
+            teacherSelector.disabled = true;
+
+            // Fetch teachers for the selected class
+            fetch(`<?php echo Yii::app()->createUrl('teacher/getTeachersOfAClass'); ?>?classId=${classId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    teacherSelector.innerHTML = '<option value="">-- Select a Teacher --</option>';
+                    
+                    if (data.success && data.teachers && data.teachers.length > 0) {
+                        data.teachers.forEach(teacher => {
+                            const option = document.createElement('option');
+                            option.value = teacher._id.$oid;
+                            option.textContent = teacher.name || 'Unknown Teacher';
+                            teacherSelector.appendChild(option);
+                        });
+                        teacherSelector.disabled = false;
+                    } else {
+                        teacherSelector.innerHTML = '<option value="">No teachers found for this class</option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading teachers:', error);
+                    teacherSelector.innerHTML = '<option value="">Error loading teachers</option>';
+                });
+            <?php endif; ?>
         }
 
         // Load students for the selected class
@@ -114,8 +173,18 @@ $this->breadcrumbs = array(
             if (!classId) {
                 noClassMessage.classList.remove('hidden');
                 studentsTableContainer.classList.add('hidden');
+                <?php if (Yii::app()->user->isAdmin()): ?>
+                // Reset teacher selector
+                if (teacherSelector) {
+                    teacherSelector.innerHTML = '<option value="">Select a class to get teachers</option>';
+                    teacherSelector.disabled = true;
+                }
+                <?php endif; ?>
                 return;
             }
+
+            // Load teachers for admin users
+            loadTeachers(classId);
 
             // Show loading indicator
             noClassMessage.classList.add('hidden');
@@ -213,12 +282,19 @@ $this->breadcrumbs = array(
         });
 
 
-        // When class selection changes, load students
+        // When class selection changes, load students and teachers
         classSelector.addEventListener('change', loadStudents);
 
         // When date changes, update hidden field
         attendanceDate.addEventListener('change', updateHiddenFields);
 
+        <?php if (Yii::app()->user->isAdmin()): ?>
+        // When teacher selection changes, update hidden field
+        if (teacherSelector) {
+            teacherSelector.addEventListener('change', updateHiddenFields);
+        }
+        <?php endif; ?>
+        
         // Form submission
         attendanceForm.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -250,6 +326,13 @@ $this->breadcrumbs = array(
             const formData = new FormData();
             formData.append('date', attendanceDate.value);
             formData.append('class_id', classSelector.value);
+
+            <?php if (Yii::app()->user->isAdmin()): ?>
+            // Add teacher ID for admin users
+            if (teacherSelector && teacherSelector.value) {
+                formData.append('teacher_id', teacherSelector.value);
+            }
+            <?php endif; ?>
 
             // Collect all present student IDs
             const presentStudentIds = [];

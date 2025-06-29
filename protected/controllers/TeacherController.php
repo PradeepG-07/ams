@@ -28,7 +28,7 @@ class TeacherController extends Controller
         return array(
             array(
                 'allow',
-                'actions'=>array('index'),
+                'actions'=>array('index', 'getTeachersOfAClass'),
                 'expression'=>"Yii::app()->user->isAdmin()",
             ),
             array('deny',
@@ -71,6 +71,30 @@ class TeacherController extends Controller
                 'teachers' =>  $teachers,
             ));
             Yii::app()->end();
+        }
+    }
+
+    public function actionGetTeachersOfAClass($classId)
+    {
+        try {
+            Yii::log("Fetching teachers for class ID: $classId", CLogger::LEVEL_INFO, 'application.controllers.TeacherController');
+            $teachers = TeacherHelper::getTeachersByClassId(new ObjectId($classId));
+            if (empty($teachers)) {
+                Yii::log("No teachers found for class ID: $classId", CLogger::LEVEL_WARNING, 'application.controllers.TeacherController');
+                echo CJSON::encode(array(
+                    'success' => true,
+                    'teachers' => [],
+                    'message' => 'No teachers found for this class.'
+                ));
+                Yii::app()->end();
+            }
+            echo CJSON::encode(array(
+                'success' => true,
+                'teachers' => $teachers,
+            ));
+        } catch (Exception $e) {
+            Yii::log("Error fetching teachers for class ID $classId: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.controllers.TeacherController');
+            throw new CHttpException(500, 'An error occurred while fetching teachers: ' . $e->getMessage());
         }
     }
 }

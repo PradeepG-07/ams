@@ -25,6 +25,52 @@ class TeacherHelper
         }
     }
 
+    public static function getTeachersByClassId($classId)
+    {
+        try {
+            Yii::log("Fetching teachers for class ID: $classId", CLogger::LEVEL_TRACE, 'application.helpers.teacherHelper');
+
+            $aggregationResult = Teacher::model()->startAggregation()
+                ->addStage([
+                    '$match' => [
+                        'classes' => ['$in' => [$classId]]
+                    ]
+                ])
+                ->addStage([
+                    '$lookup' => [
+                        'from' => 'users',
+                        'localField' => 'user_id',
+                        'foreignField' => '_id',
+                        'as' => 'user'
+                    ]
+                ])
+                ->addStage([
+                    '$unwind' => [
+                        'path' => '$user',
+                        'preserveNullAndEmptyArrays' => true
+                    ]
+                ])
+                ->addStage([
+                    '$project' => [
+                        'name' => '$user.name',
+                        '_id' => 1
+                    ]
+                ])
+                ->aggregate();
+
+            $teachers = $aggregationResult['result'] ?? [];
+            
+            if (empty($teachers)) {
+                Yii::log("No teachers found for class ID: $classId", CLogger::LEVEL_WARNING, 'application.helpers.teacherHelper');
+                return [];
+            }
+            return $teachers;
+        } catch (Exception $e) {
+            Yii::log("Error fetching teachers for class ID: $classId - " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.helpers.teacherHelper');
+            throw new CHttpException(500, 'An error occurred while fetching teachers: ' . $e->getMessage());
+        }
+    }
+
 
     public static function loadTeacherByUserId($id)
     {
