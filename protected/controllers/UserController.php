@@ -61,8 +61,9 @@ class UserController extends Controller
             // Validate the model before rendering
             $this->performAjaxValidation($model);
             if (isset($_POST['User']) && (isset($_POST['Student']) || isset($_POST['Teacher']))) {
-                $model->attributes = $_POST['User'];
-                if ($model->save()) {
+                $result = UserHelper::createUser($_POST['User']);
+                $model = $result['model'];
+                if ($result['success']) {
                     if ($model->role == User::ROLE_STUDENT) {
                         if(empty($_POST['Student'])){
                             Yii::log("Student data is empty", CLogger::LEVEL_WARNING, 'application.controllers.UserController');

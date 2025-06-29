@@ -71,6 +71,7 @@ class UserHelper
             // handle validating embedded documents in before save
             if (!$model->validate() || !$model->save()) {
                 Yii::log("Failed to save user: " . json_encode($model->getErrors()), CLogger::LEVEL_WARNING, 'application.helpers.userHelper');
+                $model->password = "";
                 return array(
                     'success' => false,
                     'model' => $model,
@@ -79,7 +80,7 @@ class UserHelper
             }
             
             Yii::log("User " . ($id == null ? "created" : "updated") . " successfully with ID: {$id}", CLogger::LEVEL_INFO, 'application.helpers.userHelper');
-            
+            $model->password = "";
             return array(
                 'success' => true,
                 'model' => $model,
