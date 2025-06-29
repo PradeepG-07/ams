@@ -213,14 +213,19 @@ class UserController extends Controller
                 
                 // Update User collection if User data is provided
                 
-                if (isset($_POST['User'])) {
-                    $_POST['User']['role'] = $user->role;
-                    $user->attributes = $_POST['User'];
-                    if(empty($_POST['User']['password'])){
-                        $user->password = $user->getOldPassword();
-                    }
-                    $updateResults['user'] = $user->save();
-                }
+                // if (isset($_POST['User'])) {
+                //     $_POST['User']['role'] = $user->role;
+                //     $user->attributes = $_POST['User'];
+                //     if(empty($_POST['User']['password'])){
+                //         $user->password = $user->getOldPassword();
+                //     }
+                //     $updateResults['user'] = $user->save();
+                //     $user->password = ''; 
+                // }
+
+                $result = UserHelper::updateUser($id, $_POST['User']);
+                $user = $result['model']; // Update with validation errors if any
+                $updateResults['user'] = $result['success'];
                 
                 // Update Student collection if Student data is provided
                 if (isset($_POST['Student']) && $user->role == User::ROLE_STUDENT) {

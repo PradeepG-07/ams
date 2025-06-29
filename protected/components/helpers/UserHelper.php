@@ -68,6 +68,10 @@ class UserHelper
             Yii::log($id==null ? "Creating new user" : "Updating user with ID: $id", CLogger::LEVEL_INFO, 'application.helpers.userHelper');
             $model->attributes = $userData;
 
+            if($id != null){
+                $model->password = (!isset($userData['password']) || empty($userData['password'])) ? $model->getOldPassword() : $userData['password']; 
+            }
+
             // handle validating embedded documents in before save
             if (!$model->validate() || !$model->save()) {
                 Yii::log("Failed to save user: " . json_encode($model->getErrors()), CLogger::LEVEL_WARNING, 'application.helpers.userHelper');
