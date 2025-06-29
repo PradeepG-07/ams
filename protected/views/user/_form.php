@@ -206,8 +206,10 @@
                 
                 <?php echo $form->fileField($student, 'profile_picture', array(
                     'class' => 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500',
-                    'accept' => 'image/*'
+                    'accept' => 'image/*',
+                    'id' => 'profile-picture-input'
                 )); ?>
+                <div id="profile-picture-error" class="text-red-500 text-sm mt-1" style="display: none;"></div>
                 <?php echo $form->error($student, 'profile_picture', array('class' => 'text-red-500 text-sm mt-1')); ?>
             </div>
         </div>
@@ -440,6 +442,27 @@
                             this.textContent = 'Delete Picture';
                             this.disabled = false;
                         });
+                    }
+                });
+            }
+
+            // Profile picture validation
+            const profilePictureInput = document.getElementById('profile-picture-input');
+            const profilePictureError = document.getElementById('profile-picture-error');
+            
+            if (profilePictureInput) {
+                profilePictureInput.addEventListener('change', function() {
+                    const file = this.files[0];
+                    if (file) {
+                        // Check if file is an image
+                        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+                        if (!allowedTypes.includes(file.type)) {
+                            profilePictureError.textContent = 'Please select a valid image file (JPEG, PNG, GIF, or WebP).';
+                            profilePictureError.style.display = 'block';
+                            this.value = ''; // Clear the input
+                        } else {
+                            profilePictureError.style.display = 'none';
+                        }
                     }
                 });
             }
