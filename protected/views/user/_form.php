@@ -26,6 +26,10 @@
 
     <div>
         <?php echo $form->errorSummary($user, null, null, array('class' => 'text-red-500 mb-4')); ?>
+        <?php echo $form->errorSummary($student, null, null, array('class' => 'text-red-500 mb-4')); ?>
+        <?php echo $form->errorSummary($teacher, null, null, array('class' => 'text-red-500 mb-4')); ?>
+
+
         <?php if ($user->isNewRecord): ?>
             <p class="text-sm text-gray-600 mb-4">Please fill in the details below to create a new user account.</p>
         <?php else: ?>

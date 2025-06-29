@@ -74,7 +74,7 @@ class UserController extends Controller
                             $this->redirect(Yii::app()->createUrl('student/index'));
                         } else {
                             $model->delete();
-                            throw new CHttpException(400, 'Failed to create student: ' . $result['message']);
+                            // throw new CHttpException(400, 'Failed to create student: ' . $result['message']);
                         }
                     } elseif ($model->role == User::ROLE_TEACHER) {
                         if(empty($_POST['Teacher'])){
@@ -88,7 +88,7 @@ class UserController extends Controller
 
                         } else {
                             $model->delete();
-                            throw new CHttpException(400, 'Failed to create teacher: ' . $result['message']);   
+                            // throw new CHttpException(400, 'Failed to create teacher: ' . $result['message']);   
                         }
                     } else {
                         throw new CHttpException(400, 'Invalid role specified.');

@@ -27,6 +27,7 @@ class Student extends EMongoDocument
             ['cgpa', 'filter', 'filter' => function($value) {
                 return is_numeric($value) ? (float)$value : $value;
             }],
+            ['hobbies', 'validateHobbies'],
         );  
     }
 
@@ -115,6 +116,19 @@ class Student extends EMongoDocument
     //     }
     //     return parent::beforeSave();
     // }
+
+    public function validateHobbies($attribute, $params){
+        if(empty($this->hobbies)) return;
+        foreach($this->hobbies as $i=>$hobby){
+            if(!$hobby->validate()){
+                $errors = $hobby->getErrors();
+                $hobby->clearErrors();
+                foreach($errors as $attrName=>$msg){
+                    $this->addError("hobbies[$i][$attrName]","(Hobby " . ($i + 1) . ") " . implode("\n",$msg));
+                }
+            }
+        }
+    }
 
     public static function model($className=__CLASS__)
     {

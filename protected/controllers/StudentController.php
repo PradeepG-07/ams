@@ -170,15 +170,19 @@ class StudentController extends Controller
             Yii::log("Attendance range parameters - studentId: $studentId, fromDate: $fromDate, toDate: $toDate", CLogger::LEVEL_INFO, 'application.controllers.StudentController');
             
             
+            Yii::app()->user->setState('useAfterFindInAttendance', true);
             $attendanceData = StudentHelper::getAttendanceDataProvider($studentId, $fromDate, $toDate);
             
             if (Yii::app()->request->isAjaxRequest) {
                 Yii::log("Rendering partial view for AJAX request", CLogger::LEVEL_INFO, 'application.controllers.StudentController');
+                // echo "<pre>";
+                // print_r($attendanceData->getData());
+                // exit;
                 $this->renderPartial('attendancegrid', array(
                     'attendanceDataProvider' => $attendanceData,
                     'fromDate' => $fromDate,
                     'toDate' => $toDate,
-                ), false, true);
+                ));
                 Yii::app()->end();
             }
             
@@ -188,6 +192,7 @@ class StudentController extends Controller
                 'fromDate' => $fromDate,
                 'toDate' => $toDate,
             ));
+            Yii::app()->user->setState('useAfterFindInAttendance', false);
             
         } catch (Exception $e) {
             Yii::log("Error in actionAttendanceRange: " . $e->getMessage(), CLogger::LEVEL_ERROR, 'application.controllers.StudentController');

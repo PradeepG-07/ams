@@ -1,3 +1,4 @@
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 <?php if ($attendanceDataProvider !== []): ?>
     <div class="bg-white shadow-md rounded-lg overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200">
@@ -30,13 +31,15 @@
                 'summaryCssClass' => 'px-6 py-3 bg-gray-50 text-sm text-gray-700',
                 'enablePagination' => true,
                 'enableSorting' => true,
+                // 'ajaxUpdate' => true,
+                // 'ajaxUrl' => $this->createUrl('student/attendancerange'), // Add this line
                 'pager' => array(
                     'class' => 'CLinkPager',
                     'header' => '',
                     'firstPageLabel' => '« First',
                     'lastPageLabel' => 'Last »',    
                     'prevPageLabel' => 'Previous',
-                    'nextPageLabel' => 'Next',
+                    'nextPageLabel' => 'Next',  
                     'maxButtonCount' => 5,
                 ),
                 'columns' => array(
@@ -90,6 +93,17 @@
                             } else {
                                 return '<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Absent</span>';
                             }
+                        },
+                        'type' => 'raw',
+                    ),
+                    array(
+                        'name' => 'teacher name',
+                        'header' => 'Teacher Name',
+                        'headerHtmlOptions' => array('class' => 'px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'),
+                        'htmlOptions' => array('class' => 'px-6 py-4 whitespace-nowrap text-sm text-gray-900'),
+                        'value' => function($data) {
+                            
+                            return isset($data['teacher_id']->user_id->name) ? CHtml::encode($data['teacher_id']->user_id->name) : 'N/A';
                         },
                         'type' => 'raw',
                     ),

@@ -654,7 +654,9 @@ class StudentHelper
                         'pageSize' => $pageSize,    
                     )
                 ));
-                
+                // echo "<pre>";
+                // print_r($attendanceData->getData());
+                // exit;
                 Yii::log("Attendance data provider created successfully", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');
             } else {
                 Yii::log("Empty date range provided, returning empty data provider", CLogger::LEVEL_INFO, 'application.helpers.studentHelper');

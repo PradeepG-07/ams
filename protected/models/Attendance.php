@@ -12,6 +12,17 @@ class Attendance extends EMongoDocument
         return 'attendance';
     }
 
+    public function afterFind(){
+        // var_dump(Yii::app()->user->getState('useAfterFindInAttendance'));
+        // exit;
+        if (!empty($this->teacher_id) && Yii::app()->user->getState('useAfterFindInAttendance') == true) {
+            $this->teacher_id = Teacher::model()->findByPk($this->teacher_id);
+            $this->teacher_id->user_id = User::model()->findByPk($this->teacher_id->user_id);
+        }
+        return parent::afterFind();
+
+    }
+
     public function rules()
     {
         return array(
@@ -28,6 +39,7 @@ class Attendance extends EMongoDocument
     //         $this->class_id = Classes::model()->findByPk($this->class_id);
     //     }
     // }
+
     public function attributeLabels()
     {
         return array(
