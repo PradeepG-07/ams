@@ -75,6 +75,20 @@ class AttendanceHelper{
                 Yii::log("Existing attendance record found and deleted for class ID: " . $data['class_id'], CLogger::LEVEL_INFO, 'application.helpers.AttendanceHelper');
             }
 
+            // check if attendance already exists for this class and date
+            $criteria = new EMongoCriteria();
+            $criteria->addCond('class_id', '==', new ObjectId($data['class_id']));
+            $criteria->addCond('date', '==', new MongoDate(strtotime($data['date'])));
+            $existingAttendance = Attendance::model()->find($criteria);
+
+            if($existingAttendance){
+                Yii::log("Attendance already exists for class ID: " . $data['class_id'] . " on date: " . $data['date'], CLogger::LEVEL_WARNING, 'application.helpers.AttendanceHelper');
+                return array(
+                    'success' => false,
+                    'message' => 'Attendance already exists for this class and date.'
+                );
+            }
+
             $model = new Attendance();
             $model->attributes = $data;
             $model->date = new MongoDate(strtotime($data['date']));
